@@ -1,0 +1,153 @@
+groups:
+  - name: shopai-availability
+    rules:
+      - alert: BackendDown
+        expr: up{job="shopai-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ShopAI Backend API is down"
+          description: "FastAPI /metrics target has been unreachable for 1m."
+
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "postgres-exporter reports pg_up=0 for 1m."
+
+      - alert: LLMNodeDown
+        expr: up{job="shopai-vllm"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "vLLM node (shopai-fast) is down"
+          description: "vLLM /metrics on 192.168.0.15:8000 unreachable for 1m."
+
+      - alert: GPUExporterDown
+        expr: up{job="shopai-gpu"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GPU exporter is down"
+          description: "nvidia-smi exporter on 192.168.0.15:9401 unreachable for 2m."
+
+  - name: shopai-gpu
+    rules:
+      - alert: GPUVramHigh
+        expr: (shopai_gpu_memory_used_mib / shopai_gpu_memory_total_mib) > 0.92
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GPU VRAM > 92%"
+          description: "OOM risk on {{ $labels.name }} (gpu {{ $labels.gpu }})."
+
+      - alert: GPUTemperatureHigh
+        expr: shopai_gpu_temperature_celsius > 82
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GPU temperature > 82C"
+          description: "Thermal throttling risk on {{ $labels.name }}."
+
+  - name: shopai-llm
+    rules:
+      - alert: LLMQueueHigh
+        expr: vllm:num_requests_waiting > 2
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vLLM waiting queue > 2"
+          description: "Requests are queueing; concurrency headroom exhausted."
+
+      - alert: LLMTTFTSlow
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(vllm:time_to_first_token_seconds_bucket[5m]))
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LLM TTFT p95 > 2s"
+          description: "Time-to-first-token p95 above 2s for 5m."
+
+      - alert: ReasoningLeakSanitized
+        expr: increase(shopai_reasoning_sanitized_total[1h]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Qwen reasoning tags were stripped"
+          description: "shopai_reasoning_sanitized_total increased; /no_think may not be applied."
+
+  - name: shopai-quality
+    rules:
+      - alert: FallbackSpike
+        expr: |
+          sum(rate(shopai_fallback_total[10m]))
+          /
+          sum(rate(shopai_chat_requests_total[10m])) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Safe-fallback rate > 5%"
+          description: "More than 5% of chats fell back over the last 10m."
+
+      - alert: RagNoHitSpike
+        expr: |
+          sum(rate(shopai_rag_retrieval_total{retrieval_type="fused",result="miss"}[30m]))
+          /
+          sum(rate(shopai_rag_retrieval_total{retrieval_type="fused"}[30m])) > 0.10
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RAG no-hit rate > 10%"
+          description: "Hybrid RAG returned nothing for >10% of queries over 30m."
+
+      - alert: AuthRejectSpike
+        expr: increase(shopai_auth_rejections_total[10m]) > 10
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Auth rejections > 10 / 10m"
+          description: "Misconfigured devices or unauthorized access attempts."
+
+  - name: shopai-voice
+    rules:
+      # These stay silent (no data -> NaN) until TTS / Events are implemented.
+      - alert: TTSFailureSpike
+        expr: |
+          sum(rate(shopai_tts_jobs_total{status="failed"}[10m]))
+          /
+          sum(rate(shopai_tts_jobs_total[10m])) > 0.02
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "TTS failure rate > 2%"
+          description: "Voice synthesis failing above 2%."
+
+      - alert: PlaybackFailureSpike
+        expr: |
+          sum(rate(shopai_events_total{event_type="tts_playback_failed"}[10m]))
+          /
+          clamp_min(sum(rate(shopai_events_total{event_type="tts_requested"}[10m])), 1) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Android playback failure > 5%"
+          description: "Devices failing to play synthesized audio."

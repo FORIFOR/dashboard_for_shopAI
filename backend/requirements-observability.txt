@@ -1,0 +1,2 @@
+# Append to the Backend VM's existing requirements.txt (or pip install directly).
+prometheus-client>=0.20

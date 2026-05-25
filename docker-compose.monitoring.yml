@@ -1,0 +1,107 @@
+# ShopAI monitoring stack — deploy on the Backend VM (192.168.0.6).
+#
+# These services need to resolve the backend's `api` and `db` containers by
+# name, so they attach to the backend compose's existing network as external.
+#
+# Two ways to run:
+#   A) Overlay (recommended) — keep the backend compose as-is and run:
+#        SHOPAI_NETWORK=$(docker network ls --format '{{.Name}}' | grep _default | head -1)
+#        docker compose --env-file .env -f docker-compose.monitoring.yml up -d
+#      Set SHOPAI_NETWORK to the backend project's network (usually
+#      "<backendproject>_default"; check `docker network ls`).
+#   B) Merge — paste the `services:` block into the backend docker-compose.yml
+#      and drop the external `networks:` section (they share the default net).
+#
+# .env must define GRAFANA_ADMIN_PASSWORD, POSTGRES_PASSWORD,
+# SHOPAI_DASHBOARD_DB_PASSWORD (see .env.example).
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: shopai-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+    networks:
+      - shopai-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: shopai-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      # Consumed by the provisioned PostgreSQL datasource (read-only user).
+      SHOPAI_DASHBOARD_DB_PASSWORD: ${SHOPAI_DASHBOARD_DB_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - shopai-net
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: shopai-postgres-exporter
+    restart: unless-stopped
+    environment:
+      # `db` is the backend's PostgreSQL service/container name — change if yours differs.
+      DATA_SOURCE_NAME: "postgresql://shopai:${POSTGRES_PASSWORD}@db:5432/shopai?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks:
+      - shopai-net
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: shopai-node-exporter
+    restart: unless-stopped
+    pid: host
+    ports:
+      - "9100:9100"
+    command:
+      - "--path.rootfs=/host"
+    volumes:
+      - "/:/host:ro,rslave"
+    networks:
+      - shopai-net
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: shopai-cadvisor
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - shopai-net
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  shopai-net:
+    external: true
+    name: ${SHOPAI_NETWORK:-shopai_default}
