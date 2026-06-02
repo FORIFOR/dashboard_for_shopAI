@@ -408,20 +408,14 @@ def build_voice_ops():
                         [prom_target(f"sum by (provider) (rate({FA}_count[5m])) * 60", "{{provider}}")],
                         12, 5, gw=12, gh=8, unit="short", decimals=1, legend_table=True))
 
-    # ── TTS 品質 (合成速度 / RTF) ──────────────────────────────────────────────
-    p.append(row("\u2699\uFE0F TTS 品質 (合成速度 / RTF)", 13))
-    p.append(stat("合成 p95", [prom_target("histogram_quantile(0.95, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))")],
-                  0, 14, gw=6, gh=4, unit="s", color_mode="value", decimals=2,
-                  desc="1リクエストの TTS 合成にかかった時間 (p95)"))
-    p.append(stat("RTF p95", [prom_target("histogram_quantile(0.95, sum by (le) (rate(shopai_tts_rtf_bucket[5m])))")],
-                  6, 14, gw=6, gh=4, color_mode="value", decimals=2,
-                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.7}, {"color": "red", "value": 1.0}],
-                  desc="Real-time factor = 合成秒 / 音声秒。1未満ならリアルタイムより速い"))
-    p.append(timeseries("合成レイテンシ p50 / p95",
-                        [prom_target("histogram_quantile(0.50, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))", "p50", "A"),
-                         prom_target("histogram_quantile(0.95, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))", "p95", "B")],
-                        12, 14, gw=12, gh=8, unit="s", decimals=2, legend_table=True))
-
+    # ── 初回音声レイテンシ 推移 (ストリーミング音声で実データが出る) ───────
+    FAB = "shopai_tts_first_audio_latency_seconds_bucket"
+    p.append(row("\U0001F4C8 初回音声レイテンシ 推移", 13))
+    p.append(timeseries("初回音声 p50 / p95 / p99 推移",
+                        [prom_target(f"histogram_quantile(0.50, sum by (le) (rate({FAB}[5m])))", "p50", "A"),
+                         prom_target(f"histogram_quantile(0.95, sum by (le) (rate({FAB}[5m])))", "p95", "B"),
+                         prom_target(f"histogram_quantile(0.99, sum by (le) (rate({FAB}[5m])))", "p99", "C")],
+                        0, 14, gw=24, gh=8, unit="s", decimals=2, legend_table=True))
     # ── チャット運用 (ルート / フォールバック / 認証) ──────────────────────────
     p.append(row("\U0001F91D チャット運用 (ルート / フォールバック)", 22))
     p.append(timeseries("ルート別 リクエスト (req/s)",

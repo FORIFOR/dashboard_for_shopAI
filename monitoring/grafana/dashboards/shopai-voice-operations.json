@@ -428,7 +428,7 @@
     {
       "id": 8,
       "type": "row",
-      "title": "\u2699\ufe0f TTS \u54c1\u8cea (\u5408\u6210\u901f\u5ea6 / RTF)",
+      "title": "\ud83d\udcc8 \u521d\u56de\u97f3\u58f0\u30ec\u30a4\u30c6\u30f3\u30b7 \u63a8\u79fb",
       "collapsed": false,
       "gridPos": {
         "h": 1,
@@ -440,133 +440,8 @@
     },
     {
       "id": 9,
-      "type": "stat",
-      "title": "\u5408\u6210 p95",
-      "description": "1\u30ea\u30af\u30a8\u30b9\u30c8\u306e TTS \u5408\u6210\u306b\u304b\u304b\u3063\u305f\u6642\u9593 (p95)",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "shopai-prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 0,
-        "y": 14
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s",
-          "decimals": 2
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "textMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "shopai-prometheus"
-          }
-        }
-      ]
-    },
-    {
-      "id": 10,
-      "type": "stat",
-      "title": "RTF p95",
-      "description": "Real-time factor = \u5408\u6210\u79d2 / \u97f3\u58f0\u79d2\u30021\u672a\u6e80\u306a\u3089\u30ea\u30a2\u30eb\u30bf\u30a4\u30e0\u3088\u308a\u901f\u3044",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "shopai-prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
-        "y": 14
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 1.0
-              }
-            ]
-          },
-          "decimals": 2
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "textMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_tts_rtf_bucket[5m])))",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "shopai-prometheus"
-          }
-        }
-      ]
-    },
-    {
-      "id": 11,
       "type": "timeseries",
-      "title": "\u5408\u6210\u30ec\u30a4\u30c6\u30f3\u30b7 p50 / p95",
+      "title": "\u521d\u56de\u97f3\u58f0 p50 / p95 / p99 \u63a8\u79fb",
       "description": "",
       "datasource": {
         "type": "prometheus",
@@ -574,8 +449,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
+        "w": 24,
+        "x": 0,
         "y": 14
       },
       "fieldConfig": {
@@ -620,7 +495,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(shopai_tts_first_audio_latency_seconds_bucket[5m])))",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -629,17 +504,26 @@
         },
         {
           "refId": "B",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_tts_first_audio_latency_seconds_bucket[5m])))",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
           "legendFormat": "p95"
+        },
+        {
+          "refId": "C",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(shopai_tts_first_audio_latency_seconds_bucket[5m])))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "p99"
         }
       ]
     },
     {
-      "id": 12,
+      "id": 10,
       "type": "row",
       "title": "\ud83e\udd1d \u30c1\u30e3\u30c3\u30c8\u904b\u7528 (\u30eb\u30fc\u30c8 / \u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af)",
       "collapsed": false,
@@ -652,7 +536,7 @@
       "panels": []
     },
     {
-      "id": 13,
+      "id": 11,
       "type": "timeseries",
       "title": "\u30eb\u30fc\u30c8\u5225 \u30ea\u30af\u30a8\u30b9\u30c8 (req/s)",
       "description": "",
@@ -718,7 +602,7 @@
       ]
     },
     {
-      "id": 14,
+      "id": 12,
       "type": "timeseries",
       "title": "\u56de\u7b54\u30bd\u30fc\u30b9\u5225 \u30ea\u30af\u30a8\u30b9\u30c8 (req/s)",
       "description": "",
@@ -784,7 +668,7 @@
       ]
     },
     {
-      "id": 15,
+      "id": 13,
       "type": "timeseries",
       "title": "\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af\u7406\u7531\u5225 (1h \u5897\u5206)",
       "description": "",
@@ -850,7 +734,7 @@
       ]
     },
     {
-      "id": 16,
+      "id": 14,
       "type": "stat",
       "title": "\u8a8d\u8a3c\u62d2\u5426 (1h)",
       "description": "",
@@ -916,7 +800,7 @@
       ]
     },
     {
-      "id": 17,
+      "id": 15,
       "type": "stat",
       "title": "\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af\u7dcf\u6570 (1h)",
       "description": "",
@@ -974,7 +858,7 @@
       ]
     },
     {
-      "id": 18,
+      "id": 16,
       "type": "row",
       "title": "\ud83d\udcdd \u30b9\u30bf\u30c3\u30d5\u5bfe\u5fdc / \u8a8d\u8a3c (PostgreSQL)",
       "collapsed": false,
@@ -987,7 +871,7 @@
       "panels": []
     },
     {
-      "id": 19,
+      "id": 17,
       "type": "table",
       "title": "\u4fdd\u7559\u4e2d\u30b9\u30bf\u30c3\u30d5\u547c\u3073\u51fa\u3057",
       "datasource": {
@@ -1024,7 +908,7 @@
       ]
     },
     {
-      "id": 20,
+      "id": 18,
       "type": "table",
       "title": "\u76f4\u8fd1\u306e\u8a8d\u8a3c\u62d2\u5426",
       "datasource": {
