@@ -23,6 +23,8 @@ services:
     volumes:
       - ./monitoring/prometheus/prometheus.health.yml:/etc/prometheus/prometheus.yml:ro
       - ./monitoring/prometheus/alerts-health.yml:/etc/prometheus/alerts-health.yml:ro
+      # backend /metrics token (gitignored; cp backend_sd.json.example backend_sd.json)
+      - ./monitoring/prometheus/backend_sd.json:/etc/prometheus/backend_sd.json:ro
       - health_prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -67,6 +69,10 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       # Land on the service-health screen by default.
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/shopai-service-health.json
+      # PostgreSQL datasource (SQL-table panels). Needs the read-only user from
+      # sql/grafana_readonly_user.sql; leave password unset to skip those panels.
+      SHOPAI_DB_HOST: 192.168.0.6
+      SHOPAI_DASHBOARD_DB_PASSWORD: ${SHOPAI_DASHBOARD_DB_PASSWORD:-unset}
     volumes:
       - health_grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro

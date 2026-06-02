@@ -1,0 +1,8 @@
+[
+  {
+    "targets": ["192.168.0.6:8080"],
+    "labels": {
+      "__param_token": "REPLACE_WITH_BACKEND_METRICS_TOKEN"
+    }
+  }
+]

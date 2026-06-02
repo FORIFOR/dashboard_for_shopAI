@@ -1,6 +1,6 @@
 {
   "uid": "shopai-system-overview",
-  "title": "ShopAI System Overview",
+  "title": "ShopAI \u30b7\u30b9\u30c6\u30e0\u6982\u8981",
   "tags": [
     "shopai",
     "overview"
@@ -23,8 +23,22 @@
   "panels": [
     {
       "id": 1,
+      "type": "row",
+      "title": "\ud83d\udfe2 \u7a3c\u50cd\u72b6\u6cc1",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
       "type": "stat",
       "title": "Backend API",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -33,7 +47,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -98,9 +112,10 @@
       ]
     },
     {
-      "id": 2,
+      "id": 3,
       "type": "stat",
       "title": "PostgreSQL",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -109,7 +124,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -174,9 +189,10 @@
       ]
     },
     {
-      "id": 3,
+      "id": 4,
       "type": "stat",
       "title": "Fast LLM (vLLM)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -185,7 +201,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -250,9 +266,10 @@
       ]
     },
     {
-      "id": 4,
+      "id": 5,
       "type": "stat",
       "title": "GPU exporter",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -261,7 +278,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -326,9 +343,10 @@
       ]
     },
     {
-      "id": 5,
+      "id": 6,
       "type": "stat",
-      "title": "TTS ready",
+      "title": "TTS",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -337,7 +355,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -402,9 +420,10 @@
       ]
     },
     {
-      "id": 6,
+      "id": 7,
       "type": "stat",
-      "title": "DB ready",
+      "title": "Database",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -413,7 +432,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -478,9 +497,22 @@
       ]
     },
     {
-      "id": 7,
+      "id": 8,
+      "type": "row",
+      "title": "\ud83e\udd16 \u7a3c\u50cd\u30e2\u30c7\u30eb / \u5fdc\u7b54\u901f\u5ea6 (p95)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "panels": []
+    },
+    {
+      "id": 9,
       "type": "table",
-      "title": "Active model",
+      "title": "\u7a3c\u50cd\u4e2d\u30e2\u30c7\u30eb",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -489,7 +521,7 @@
         "h": 4,
         "w": 12,
         "x": 0,
-        "y": 4
+        "y": 6
       },
       "fieldConfig": {
         "defaults": {
@@ -516,9 +548,10 @@
       ]
     },
     {
-      "id": 8,
+      "id": 10,
       "type": "stat",
       "title": "API p95",
+      "description": "HTTP \u30ea\u30af\u30a8\u30b9\u30c8\u5168\u4f53\u306e95\u30d1\u30fc\u30bb\u30f3\u30bf\u30a4\u30eb\u5fdc\u7b54\u6642\u9593 (\u76f4\u8fd15\u5206)",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -527,7 +560,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 4
+        "y": 6
       },
       "fieldConfig": {
         "defaults": {
@@ -541,10 +574,19 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 1.0
               }
             ]
           },
-          "unit": "s"
+          "unit": "s",
+          "decimals": 2
         },
         "overrides": []
       },
@@ -573,9 +615,10 @@
       ]
     },
     {
-      "id": 9,
+      "id": 11,
       "type": "stat",
       "title": "LLM p95",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -584,7 +627,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 4
+        "y": 6
       },
       "fieldConfig": {
         "defaults": {
@@ -598,10 +641,19 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 1.0
               }
             ]
           },
-          "unit": "s"
+          "unit": "s",
+          "decimals": 2
         },
         "overrides": []
       },
@@ -630,9 +682,10 @@
       ]
     },
     {
-      "id": 10,
+      "id": 12,
       "type": "stat",
       "title": "RAG p95 (fused)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -641,7 +694,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 4
+        "y": 6
       },
       "fieldConfig": {
         "defaults": {
@@ -655,10 +708,15 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.3
               }
             ]
           },
-          "unit": "s"
+          "unit": "s",
+          "decimals": 2
         },
         "overrides": []
       },
@@ -687,9 +745,23 @@
       ]
     },
     {
-      "id": 11,
+      "id": 13,
+      "type": "row",
+      "title": "\ud83d\udcca \u30c8\u30e9\u30d5\u30a3\u30c3\u30af / \u5fdc\u7b54\u901f\u5ea6\u306e\u63a8\u79fb",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "panels": []
+    },
+    {
+      "id": 14,
       "type": "timeseries",
-      "title": "Requests by route (req/s)",
+      "title": "\u30eb\u30fc\u30c8\u5225\u30ea\u30af\u30a8\u30b9\u30c8 (req/s)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -698,7 +770,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 11
       },
       "fieldConfig": {
         "defaults": {
@@ -721,7 +793,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 2
         },
         "overrides": []
       },
@@ -751,9 +824,10 @@
       ]
     },
     {
-      "id": 12,
+      "id": 15,
       "type": "timeseries",
-      "title": "Chat latency p95 by route",
+      "title": "\u30eb\u30fc\u30c8\u5225 \u5fdc\u7b54 p95",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -762,7 +836,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 11
       },
       "fieldConfig": {
         "defaults": {
@@ -785,7 +859,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 2
         },
         "overrides": []
       },
@@ -815,18 +890,32 @@
       ]
     },
     {
-      "id": 13,
+      "id": 16,
+      "type": "row",
+      "title": "\u26a0\ufe0f \u7570\u5e38 / \u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "panels": []
+    },
+    {
+      "id": 17,
       "type": "stat",
-      "title": "Safe-fallback rate",
+      "title": "\u5b89\u5168\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af\u7387",
+      "description": "\u56de\u7b54\u3067\u304d\u305a\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af\u3057\u305f\u5272\u5408\u3002\u9ad8\u3044\u307b\u3069 RAG/\u30e2\u30c7\u30eb\u304c\u7b54\u3048\u3089\u308c\u3066\u3044\u306a\u3044",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
       },
       "gridPos": {
-        "h": 4,
+        "h": 8,
         "w": 6,
         "x": 0,
-        "y": 16
+        "y": 20
       },
       "fieldConfig": {
         "defaults": {
@@ -844,10 +933,15 @@
               {
                 "color": "yellow",
                 "value": 0.05
+              },
+              {
+                "color": "red",
+                "value": 0.1
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "decimals": 1
         },
         "overrides": []
       },
@@ -876,18 +970,19 @@
       ]
     },
     {
-      "id": 14,
+      "id": 18,
       "type": "stat",
-      "title": "Auth denied (1h)",
+      "title": "\u8a8d\u8a3c\u62d2\u5426 (1h)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
       },
       "gridPos": {
-        "h": 4,
+        "h": 8,
         "w": 6,
         "x": 6,
-        "y": 16
+        "y": 20
       },
       "fieldConfig": {
         "defaults": {
@@ -905,9 +1000,14 @@
               {
                 "color": "yellow",
                 "value": 10
+              },
+              {
+                "color": "red",
+                "value": 50
               }
             ]
-          }
+          },
+          "decimals": 0
         },
         "overrides": []
       },
@@ -927,7 +1027,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(shopai_auth_rejections_total[1h]))",
+          "expr": "sum(increase(shopai_auth_rejections_total[1h])) or vector(0)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -936,9 +1036,10 @@
       ]
     },
     {
-      "id": 15,
+      "id": 19,
       "type": "timeseries",
-      "title": "Errors & fallback (rate)",
+      "title": "\u30a8\u30e9\u30fc / \u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af (rate)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -947,7 +1048,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 20
       },
       "fieldConfig": {
         "defaults": {
@@ -970,7 +1071,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 2
         },
         "overrides": []
       },
@@ -995,7 +1097,7 @@
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "chat errors"
+          "legendFormat": "\u30a8\u30e9\u30fc"
         },
         {
           "refId": "B",
@@ -1004,7 +1106,7 @@
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "safe fallback"
+          "legendFormat": "\u5b89\u5168\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af"
         },
         {
           "refId": "C",
@@ -1013,14 +1115,27 @@
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "auth denied"
+          "legendFormat": "\u8a8d\u8a3c\u62d2\u5426"
         }
       ]
     },
     {
-      "id": 16,
+      "id": 20,
+      "type": "row",
+      "title": "\ud83d\udcdd \u76f4\u8fd1\u306e\u5b89\u5168\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af (PostgreSQL)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "panels": []
+    },
+    {
+      "id": 21,
       "type": "table",
-      "title": "Recent safe-fallback (PostgreSQL)",
+      "title": "\u76f4\u8fd1\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af 20\u4ef6",
       "datasource": {
         "type": "postgres",
         "uid": "shopai-postgres"
@@ -1029,7 +1144,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 29
       },
       "fieldConfig": {
         "defaults": {

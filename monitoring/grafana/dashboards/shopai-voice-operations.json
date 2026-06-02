@@ -26,6 +26,7 @@
       "id": 1,
       "type": "stat",
       "title": "TTS success rate",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -83,6 +84,7 @@
       "id": 2,
       "type": "stat",
       "title": "TTS p95 latency",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -140,6 +142,7 @@
       "id": 3,
       "type": "stat",
       "title": "Playback finished rate",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -197,6 +200,7 @@
       "id": 4,
       "type": "stat",
       "title": "Staff calls pending",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -257,6 +261,7 @@
       "id": 5,
       "type": "timeseries",
       "title": "TTS jobs by status (rate)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -321,6 +326,7 @@
       "id": 6,
       "type": "timeseries",
       "title": "Android events by type (rate)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"

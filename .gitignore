@@ -2,6 +2,8 @@
 .env
 *.env
 !.env.example
+# backend /metrics token lives here (see backend_sd.json.example)
+monitoring/prometheus/backend_sd.json
 
 # Python
 __pycache__/

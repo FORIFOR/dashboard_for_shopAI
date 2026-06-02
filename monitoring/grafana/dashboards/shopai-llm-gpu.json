@@ -24,8 +24,22 @@
   "panels": [
     {
       "id": 1,
+      "type": "row",
+      "title": "\ud83d\udda5\ufe0f GPU \u72b6\u614b (RTX 5070 Ti)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
       "type": "gauge",
-      "title": "GPU Util",
+      "title": "GPU \u4f7f\u7528\u7387",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -34,13 +48,14 @@
         "h": 6,
         "w": 4,
         "x": 0,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
           "min": 0,
           "max": 100,
+          "decimals": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -81,9 +96,10 @@
       ]
     },
     {
-      "id": 2,
+      "id": 3,
       "type": "gauge",
-      "title": "VRAM used %",
+      "title": "VRAM \u4f7f\u7528\u7387",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -92,13 +108,14 @@
         "h": 6,
         "w": 4,
         "x": 4,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
           "min": 0,
           "max": 100,
+          "decimals": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -139,9 +156,10 @@
       ]
     },
     {
-      "id": 3,
+      "id": 4,
       "type": "stat",
-      "title": "GPU Temp",
+      "title": "GPU \u6e29\u5ea6",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -150,7 +168,7 @@
         "h": 6,
         "w": 4,
         "x": 8,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -175,7 +193,8 @@
               }
             ]
           },
-          "unit": "celsius"
+          "unit": "celsius",
+          "decimals": 0
         },
         "overrides": []
       },
@@ -204,9 +223,10 @@
       ]
     },
     {
-      "id": 4,
+      "id": 5,
       "type": "stat",
-      "title": "Power",
+      "title": "\u6d88\u8cbb\u96fb\u529b",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -215,7 +235,7 @@
         "h": 6,
         "w": 4,
         "x": 12,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -232,7 +252,8 @@
               }
             ]
           },
-          "unit": "watt"
+          "unit": "watt",
+          "decimals": 0
         },
         "overrides": []
       },
@@ -261,9 +282,10 @@
       ]
     },
     {
-      "id": 5,
+      "id": 6,
       "type": "stat",
-      "title": "GPU Clock (MHz)",
+      "title": "\u30af\u30ed\u30c3\u30af (MHz)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -272,7 +294,7 @@
         "h": 6,
         "w": 4,
         "x": 16,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -289,7 +311,8 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "decimals": 0
         },
         "overrides": []
       },
@@ -318,9 +341,10 @@
       ]
     },
     {
-      "id": 6,
+      "id": 7,
       "type": "stat",
-      "title": "VRAM used (MiB)",
+      "title": "VRAM \u4f7f\u7528\u91cf",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -329,7 +353,7 @@
         "h": 6,
         "w": 4,
         "x": 20,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -346,7 +370,8 @@
               }
             ]
           },
-          "unit": "decmbytes"
+          "unit": "bytes",
+          "decimals": 1
         },
         "overrides": []
       },
@@ -366,7 +391,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "shopai_gpu_memory_used_mib",
+          "expr": "shopai_gpu_memory_used_mib * 1048576",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -375,18 +400,32 @@
       ]
     },
     {
-      "id": 7,
+      "id": 8,
+      "type": "row",
+      "title": "\ud83d\udea6 vLLM \u30b9\u30b1\u30b8\u30e5\u30fc\u30e9 / \u30ad\u30e3\u30c3\u30b7\u30e5",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "panels": []
+    },
+    {
+      "id": 9,
       "type": "stat",
-      "title": "Requests running",
+      "title": "\u51e6\u7406\u4e2d\u30ea\u30af\u30a8\u30b9\u30c8",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
       },
       "gridPos": {
-        "h": 4,
+        "h": 6,
         "w": 6,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "fieldConfig": {
         "defaults": {
@@ -402,7 +441,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 0
         },
         "overrides": []
       },
@@ -431,18 +471,19 @@
       ]
     },
     {
-      "id": 8,
+      "id": 10,
       "type": "stat",
-      "title": "Requests waiting",
+      "title": "\u5f85\u6a5f\u4e2d\u30ea\u30af\u30a8\u30b9\u30c8",
+      "description": "\u5f85\u3061\u884c\u5217\u3002\u5e38\u6642 0 \u304c\u7406\u60f3\u3002\u5897\u3048\u7d9a\u3051\u308b\u306a\u3089 GPU \u304c\u8ffd\u3044\u3064\u3044\u3066\u3044\u306a\u3044",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
       },
       "gridPos": {
-        "h": 4,
+        "h": 6,
         "w": 6,
         "x": 6,
-        "y": 6
+        "y": 8
       },
       "fieldConfig": {
         "defaults": {
@@ -460,9 +501,14 @@
               {
                 "color": "yellow",
                 "value": 3
+              },
+              {
+                "color": "red",
+                "value": 10
               }
             ]
-          }
+          },
+          "decimals": 0
         },
         "overrides": []
       },
@@ -491,9 +537,10 @@
       ]
     },
     {
-      "id": 9,
+      "id": 11,
       "type": "gauge",
-      "title": "KV cache usage",
+      "title": "KV \u30ad\u30e3\u30c3\u30b7\u30e5\u4f7f\u7528\u7387",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -502,13 +549,14 @@
         "h": 6,
         "w": 6,
         "x": 12,
-        "y": 6
+        "y": 8
       },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
           "min": 0,
           "max": 100,
+          "decimals": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -549,9 +597,10 @@
       ]
     },
     {
-      "id": 10,
+      "id": 12,
       "type": "stat",
-      "title": "Prefix cache hit",
+      "title": "Prefix \u30ad\u30e3\u30c3\u30b7\u30e5\u547d\u4e2d\u7387",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -560,7 +609,7 @@
         "h": 6,
         "w": 6,
         "x": 18,
-        "y": 6
+        "y": 8
       },
       "fieldConfig": {
         "defaults": {
@@ -577,7 +626,8 @@
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "decimals": 1
         },
         "overrides": []
       },
@@ -606,9 +656,23 @@
       ]
     },
     {
-      "id": 11,
+      "id": 13,
+      "type": "row",
+      "title": "\u23f1\ufe0f \u63a8\u8ad6\u30ec\u30a4\u30c6\u30f3\u30b7",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "panels": []
+    },
+    {
+      "id": 14,
       "type": "timeseries",
-      "title": "TTFT p50 / p95",
+      "title": "\u521d\u56de\u30c8\u30fc\u30af\u30f3\u307e\u3067 TTFT (p50 / p95)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -617,7 +681,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 12
+        "y": 15
       },
       "fieldConfig": {
         "defaults": {
@@ -640,7 +704,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 3
         },
         "overrides": []
       },
@@ -679,9 +744,10 @@
       ]
     },
     {
-      "id": 12,
+      "id": 15,
       "type": "timeseries",
-      "title": "E2E request latency p50 / p95",
+      "title": "\u30ea\u30af\u30a8\u30b9\u30c8\u5168\u4f53 E2E (p50 / p95)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -690,7 +756,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 15
       },
       "fieldConfig": {
         "defaults": {
@@ -713,7 +779,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 2
         },
         "overrides": []
       },
@@ -752,9 +819,23 @@
       ]
     },
     {
-      "id": 13,
+      "id": 16,
+      "type": "row",
+      "title": "\ud83d\udcc8 \u30b9\u30eb\u30fc\u30d7\u30c3\u30c8",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "panels": []
+    },
+    {
+      "id": 17,
       "type": "timeseries",
-      "title": "Inter-token latency p95 (TPOT)",
+      "title": "\u30c8\u30fc\u30af\u30f3\u9593\u30ec\u30a4\u30c6\u30f3\u30b7 TPOT (p95)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -763,7 +844,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 20
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -786,15 +867,18 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 3
         },
         "overrides": []
       },
       "options": {
         "legend": {
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
-          "calcs": []
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "tooltip": {
           "mode": "multi",
@@ -814,9 +898,10 @@
       ]
     },
     {
-      "id": 14,
+      "id": 18,
       "type": "timeseries",
-      "title": "Generation token throughput (tok/s)",
+      "title": "\u751f\u6210\u30c8\u30fc\u30af\u30f3 \u30b9\u30eb\u30fc\u30d7\u30c3\u30c8 (tok/s)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -825,7 +910,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 20
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -848,15 +933,18 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 1
         },
         "overrides": []
       },
       "options": {
         "legend": {
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
-          "calcs": []
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "tooltip": {
           "mode": "multi",
@@ -876,18 +964,32 @@
       ]
     },
     {
-      "id": 15,
+      "id": 19,
+      "type": "row",
+      "title": "\ud83e\uddf9 \u30d0\u30c3\u30af\u30a8\u30f3\u30c9\u9023\u643a",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "panels": []
+    },
+    {
+      "id": 20,
       "type": "stat",
-      "title": "Reasoning sanitized (1h)",
+      "title": "\u63a8\u8ad6\u30b5\u30cb\u30bf\u30a4\u30ba (1h)",
+      "description": "\u601d\u8003\u904e\u7a0b\u306e\u6f0f\u308c\u3092\u9664\u53bb\u3057\u305f\u56de\u6570\u30020 \u304c\u7406\u60f3",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
       },
       "gridPos": {
-        "h": 4,
+        "h": 8,
         "w": 6,
         "x": 0,
-        "y": 28
+        "y": 33
       },
       "fieldConfig": {
         "defaults": {
@@ -907,7 +1009,8 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "decimals": 0
         },
         "overrides": []
       },
@@ -927,7 +1030,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(shopai_reasoning_sanitized_total[1h]))",
+          "expr": "sum(increase(shopai_reasoning_sanitized_total[1h])) or vector(0)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -936,9 +1039,10 @@
       ]
     },
     {
-      "id": 16,
+      "id": 21,
       "type": "timeseries",
-      "title": "LLM dispatch outcomes (backend view)",
+      "title": "LLM \u30c7\u30a3\u30b9\u30d1\u30c3\u30c1\u7d50\u679c (backend \u8996\u70b9)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -947,7 +1051,7 @@
         "h": 8,
         "w": 18,
         "x": 6,
-        "y": 28
+        "y": 33
       },
       "fieldConfig": {
         "defaults": {
@@ -970,7 +1074,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 2
         },
         "overrides": []
       },

@@ -1,6 +1,6 @@
 {
   "uid": "shopai-rag-quality",
-  "title": "ShopAI RAG Quality",
+  "title": "ShopAI RAG \u54c1\u8cea",
   "tags": [
     "shopai",
     "rag"
@@ -23,17 +23,31 @@
   "panels": [
     {
       "id": 1,
+      "type": "row",
+      "title": "\ud83c\udfaf \u30d2\u30c3\u30c8\u7387 / \u691c\u7d22\u901f\u5ea6",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
       "type": "stat",
-      "title": "Lexical hit rate",
+      "title": "\u5b57\u53e5\u691c\u7d22 \u30d2\u30c3\u30c8\u7387",
+      "description": "PGroonga (\u5168\u6587\u691c\u7d22) \u304c\u95a2\u9023\u30c1\u30e3\u30f3\u30af\u3092\u8fd4\u305b\u305f\u5272\u5408 (\u76f4\u8fd11h)",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
       },
       "gridPos": {
-        "h": 4,
+        "h": 5,
         "w": 6,
         "x": 0,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -45,12 +59,21 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "green",
+                "value": 0.9
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "decimals": 1
         },
         "overrides": []
       },
@@ -79,18 +102,19 @@
       ]
     },
     {
-      "id": 2,
+      "id": 3,
       "type": "stat",
-      "title": "Vector hit rate",
+      "title": "\u30d9\u30af\u30c8\u30eb\u691c\u7d22 \u30d2\u30c3\u30c8\u7387",
+      "description": "pgvector (\u610f\u5473\u691c\u7d22) \u304c\u95a2\u9023\u30c1\u30e3\u30f3\u30af\u3092\u8fd4\u305b\u305f\u5272\u5408 (\u76f4\u8fd11h)",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
       },
       "gridPos": {
-        "h": 4,
+        "h": 5,
         "w": 6,
         "x": 6,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -102,12 +126,21 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "green",
+                "value": 0.9
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "decimals": 1
         },
         "overrides": []
       },
@@ -136,18 +169,19 @@
       ]
     },
     {
-      "id": 3,
+      "id": 4,
       "type": "stat",
-      "title": "Fused no-hit rate",
+      "title": "\u7d71\u5408 \u30ce\u30fc\u30d2\u30c3\u30c8\u7387",
+      "description": "\u7d71\u5408\u691c\u7d22\u3067\u3082\u4f55\u3082\u5f53\u305f\u3089\u306a\u304b\u3063\u305f\u5272\u5408\u3002\u4f4e\u3044\u307b\u3069\u826f\u3044",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
       },
       "gridPos": {
-        "h": 4,
+        "h": 5,
         "w": 6,
         "x": 12,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -165,10 +199,15 @@
               {
                 "color": "yellow",
                 "value": 0.1
+              },
+              {
+                "color": "red",
+                "value": 0.2
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "decimals": 1
         },
         "overrides": []
       },
@@ -197,18 +236,19 @@
       ]
     },
     {
-      "id": 4,
+      "id": 5,
       "type": "stat",
-      "title": "Retrieval p95 (fused)",
+      "title": "\u691c\u7d22 p95 (\u7d71\u5408)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
       },
       "gridPos": {
-        "h": 4,
+        "h": 5,
         "w": 6,
         "x": 18,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -222,10 +262,19 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.3
+              },
+              {
+                "color": "red",
+                "value": 0.5
               }
             ]
           },
-          "unit": "s"
+          "unit": "s",
+          "decimals": 2
         },
         "overrides": []
       },
@@ -254,9 +303,23 @@
       ]
     },
     {
-      "id": 5,
+      "id": 6,
+      "type": "row",
+      "title": "\ud83d\udcca \u691c\u7d22\u7d50\u679c / \u901f\u5ea6\u306e\u63a8\u79fb",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "panels": []
+    },
+    {
+      "id": 7,
       "type": "timeseries",
-      "title": "Retrieval outcome by type (1h increase)",
+      "title": "\u7a2e\u5225\u00d7\u7d50\u679c \u4ef6\u6570 (1h)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -265,7 +328,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 4
+        "y": 7
       },
       "fieldConfig": {
         "defaults": {
@@ -288,7 +351,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 0
         },
         "overrides": []
       },
@@ -318,9 +382,10 @@
       ]
     },
     {
-      "id": 6,
+      "id": 8,
       "type": "timeseries",
-      "title": "Retrieval latency p95 by type",
+      "title": "\u7a2e\u5225\u5225 \u691c\u7d22 p95",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -329,7 +394,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 4
+        "y": 7
       },
       "fieldConfig": {
         "defaults": {
@@ -352,7 +417,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 2
         },
         "overrides": []
       },
@@ -382,9 +448,23 @@
       ]
     },
     {
-      "id": 7,
+      "id": 9,
+      "type": "row",
+      "title": "\ud83d\udcda \u6839\u62e0\u4ed8\u4e0e / \u30c1\u30e3\u30f3\u30af\u6570",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "panels": []
+    },
+    {
+      "id": 10,
       "type": "timeseries",
-      "title": "Chunks returned p50 by type",
+      "title": "\u7a2e\u5225\u5225 \u8fd4\u5374\u30c1\u30e3\u30f3\u30af\u6570 p50",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -393,7 +473,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 12
+        "y": 16
       },
       "fieldConfig": {
         "defaults": {
@@ -416,7 +496,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 1
         },
         "overrides": []
       },
@@ -446,9 +527,10 @@
       ]
     },
     {
-      "id": 8,
+      "id": 11,
       "type": "stat",
-      "title": "Grounded answer rate (1 - fallback)",
+      "title": "\u6839\u62e0\u4ed8\u304d\u56de\u7b54\u7387 (1 - \u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -457,7 +539,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 16
       },
       "fieldConfig": {
         "defaults": {
@@ -469,12 +551,21 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.8
+              },
+              {
+                "color": "green",
+                "value": 0.9
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "decimals": 1
         },
         "overrides": []
       },
@@ -503,9 +594,22 @@
       ]
     },
     {
-      "id": 9,
+      "id": 12,
+      "type": "row",
+      "title": "\ud83d\udcdd \u672a\u30d2\u30c3\u30c8\u8cea\u554f \u4e0a\u4f4d (PostgreSQL)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "panels": []
+    },
+    {
+      "id": 13,
       "type": "table",
-      "title": "Top no-hit questions (PostgreSQL)",
+      "title": "\u672a\u30d2\u30c3\u30c8\u8cea\u554f \u4e0a\u4f4d20 (24h)",
       "datasource": {
         "type": "postgres",
         "uid": "shopai-postgres"
@@ -514,7 +618,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 25
       },
       "fieldConfig": {
         "defaults": {

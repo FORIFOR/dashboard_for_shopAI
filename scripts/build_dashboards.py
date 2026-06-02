@@ -54,14 +54,16 @@ def base_field(unit=None, decimals=None, mappings=None, steps=None, color_mode="
 
 
 def stat(title, targets, gx, gy, gw=4, gh=4, unit=None, mappings=None, steps=None,
-         color_mode="background", graph="none", text_mode="auto", ds=PROM):
+         color_mode="background", graph="none", text_mode="auto", ds=PROM,
+         decimals=None, desc=None):
     return {
         "id": _next_id(),
         "type": "stat",
         "title": title,
+        "description": desc or "",
         "datasource": ds,
         "gridPos": {"h": gh, "w": gw, "x": gx, "y": gy},
-        "fieldConfig": base_field(unit=unit, mappings=mappings, steps=steps),
+        "fieldConfig": base_field(unit=unit, decimals=decimals, mappings=mappings, steps=steps),
         "options": {
             "colorMode": color_mode,
             "graphMode": graph,
@@ -73,23 +75,25 @@ def stat(title, targets, gx, gy, gw=4, gh=4, unit=None, mappings=None, steps=Non
     }
 
 
-def timeseries(title, targets, gx, gy, gw=12, gh=8, unit=None, legend_table=False, ds=PROM):
+def timeseries(title, targets, gx, gy, gw=12, gh=8, unit=None, legend_table=False, ds=PROM,
+               decimals=None, desc=None):
+    defaults = {
+        "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 1,
+                   "showPoints": "never", "spanNulls": True},
+        "color": {"mode": "palette-classic"},
+        "unit": unit or "short",
+        "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": None}]},
+    }
+    if decimals is not None:
+        defaults["decimals"] = decimals
     return {
         "id": _next_id(),
         "type": "timeseries",
         "title": title,
+        "description": desc or "",
         "datasource": ds,
         "gridPos": {"h": gh, "w": gw, "x": gx, "y": gy},
-        "fieldConfig": {
-            "defaults": {
-                "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 1,
-                           "showPoints": "never", "spanNulls": True},
-                "color": {"mode": "palette-classic"},
-                "unit": unit or "short",
-                "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": None}]},
-            },
-            "overrides": [],
-        },
+        "fieldConfig": {"defaults": defaults, "overrides": []},
         "options": {
             "legend": {"displayMode": "table" if legend_table else "list",
                        "placement": "bottom", "calcs": ["lastNotNull"] if legend_table else []},
@@ -127,15 +131,17 @@ def table(title, targets, gx, gy, gw=24, gh=8, ds=PG):
     }
 
 
-def gauge(title, targets, gx, gy, gw=4, gh=4, unit="percent", maxv=100, steps=None, ds=PROM):
+def gauge(title, targets, gx, gy, gw=4, gh=4, unit="percent", maxv=100, steps=None, ds=PROM,
+          decimals=0, desc=None):
     return {
         "id": _next_id(),
         "type": "gauge",
         "title": title,
+        "description": desc or "",
         "datasource": ds,
         "gridPos": {"h": gh, "w": gw, "x": gx, "y": gy},
         "fieldConfig": {"defaults": {
-            "unit": unit, "min": 0, "max": maxv,
+            "unit": unit, "min": 0, "max": maxv, "decimals": decimals,
             "thresholds": {"mode": "absolute", "steps": steps or [
                 {"color": "green", "value": None},
                 {"color": "yellow", "value": maxv * 0.75},
@@ -171,59 +177,73 @@ def build_system_overview():
     global _id
     _id = 0
     p = []
-    p.append(stat("Backend API", [prom_target('up{job="shopai-backend"}')], 0, 0,
+    # ── 稼働状況 (UP/DOWN) ──────────────────────────────────────────────────
+    p.append(row("🟢 稼働状況", 0))
+    p.append(stat("Backend API", [prom_target('up{job="shopai-backend"}')], 0, 1,
                   mappings=UP_MAP, steps=UP_STEPS))
-    p.append(stat("PostgreSQL", [prom_target("pg_up")], 4, 0, mappings=UP_MAP, steps=UP_STEPS))
-    p.append(stat("Fast LLM (vLLM)", [prom_target('up{job="shopai-vllm"}')], 8, 0,
+    p.append(stat("PostgreSQL", [prom_target("pg_up")], 4, 1, mappings=UP_MAP, steps=UP_STEPS))
+    p.append(stat("Fast LLM (vLLM)", [prom_target('up{job="shopai-vllm"}')], 8, 1,
                   mappings=UP_MAP, steps=UP_STEPS))
-    p.append(stat("GPU exporter", [prom_target('up{job="shopai-gpu"}')], 12, 0,
+    p.append(stat("GPU exporter", [prom_target('up{job="shopai-gpu"}')], 12, 1,
                   mappings=UP_MAP, steps=UP_STEPS))
-    p.append(stat("TTS ready", [prom_target('shopai_ready_component{component="tts"}')], 16, 0,
+    p.append(stat("TTS", [prom_target('shopai_ready_component{component="tts"}')], 16, 1,
                   mappings=UP_MAP, steps=UP_STEPS))
-    p.append(stat("DB ready", [prom_target('shopai_ready_component{component="database"}')], 20, 0,
+    p.append(stat("Database", [prom_target('shopai_ready_component{component="database"}')], 20, 1,
                   mappings=UP_MAP, steps=UP_STEPS))
 
-    p.append(table("Active model", [prom_target("shopai_llm_model_info", instant=True)],
-                   0, 4, gw=12, gh=4, ds=PROM))
+    # ── 稼働モデル / レイテンシ (p95) ───────────────────────────────────────
+    p.append(row("🤖 稼働モデル / 応答速度 (p95)", 5))
+    p.append(table("稼働中モデル", [prom_target("shopai_llm_model_info", instant=True)],
+                   0, 6, gw=12, gh=4, ds=PROM))
+    lat3 = [{"color": "green", "value": None}, {"color": "yellow", "value": 0.5}, {"color": "red", "value": 1.0}]
     p.append(stat("API p95", [prom_target(
         "histogram_quantile(0.95, sum by (le) (rate(shopai_http_request_duration_seconds_bucket[5m])))")],
-        12, 4, gw=4, unit="s", color_mode="value"))
+        12, 6, gw=4, unit="s", color_mode="value", decimals=2, steps=lat3,
+        desc="HTTP リクエスト全体の95パーセンタイル応答時間 (直近5分)"))
     p.append(stat("LLM p95", [prom_target(
         "histogram_quantile(0.95, sum by (le) (rate(shopai_llm_node_latency_seconds_bucket[5m])))")],
-        16, 4, gw=4, unit="s", color_mode="value"))
+        16, 6, gw=4, unit="s", color_mode="value", decimals=2, steps=lat3))
     p.append(stat("RAG p95 (fused)", [prom_target(
         'histogram_quantile(0.95, sum by (le) (rate(shopai_rag_retrieval_duration_seconds_bucket{retrieval_type="fused"}[5m])))')],
-        20, 4, gw=4, unit="s", color_mode="value"))
+        20, 6, gw=4, unit="s", color_mode="value", decimals=2,
+        steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.3}]))
 
-    p.append(timeseries("Requests by route (req/s)",
+    # ── トラフィック / レイテンシ推移 ───────────────────────────────────────
+    p.append(row("📊 トラフィック / 応答速度の推移", 10))
+    p.append(timeseries("ルート別リクエスト (req/s)",
                         [prom_target("sum by (route) (rate(shopai_chat_requests_total[5m]))", "{{route}}")],
-                        0, 8, gw=12, unit="reqps", legend_table=True))
-    p.append(timeseries("Chat latency p95 by route",
+                        0, 11, gw=12, unit="reqps", decimals=2, legend_table=True))
+    p.append(timeseries("ルート別 応答 p95",
                         [prom_target(
                             "histogram_quantile(0.95, sum by (le, route) (rate(shopai_chat_duration_seconds_bucket[5m])))",
                             "{{route}}")],
-                        12, 8, gw=12, unit="s", legend_table=True))
+                        12, 11, gw=12, unit="s", decimals=2, legend_table=True))
 
-    p.append(stat("Safe-fallback rate",
+    # ── 異常 / フォールバック ───────────────────────────────────────────────
+    p.append(row("⚠️ 異常 / フォールバック", 19))
+    p.append(stat("安全フォールバック率",
                   [prom_target("sum(rate(shopai_fallback_total[5m])) / clamp_min(sum(rate(shopai_chat_requests_total[5m])), 1)")],
-                  0, 16, gw=6, unit="percentunit", color_mode="value",
-                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.05}]))
-    p.append(stat("Auth denied (1h)",
-                  [prom_target("sum(increase(shopai_auth_rejections_total[1h]))")],
-                  6, 16, gw=6, color_mode="value",
-                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 10}]))
-    p.append(timeseries("Errors & fallback (rate)",
-                        [prom_target('sum(rate(shopai_chat_requests_total{result="error"}[5m]))', "chat errors", "A"),
-                         prom_target("sum(rate(shopai_fallback_total[5m]))", "safe fallback", "B"),
-                         prom_target("sum(rate(shopai_auth_rejections_total[5m]))", "auth denied", "C")],
-                        12, 16, gw=12, unit="short", legend_table=True))
+                  0, 20, gw=6, gh=8, unit="percentunit", color_mode="value", decimals=1,
+                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.05}, {"color": "red", "value": 0.1}],
+                  desc="回答できずフォールバックした割合。高いほど RAG/モデルが答えられていない"))
+    p.append(stat("認証拒否 (1h)",
+                  [prom_target("sum(increase(shopai_auth_rejections_total[1h])) or vector(0)")],
+                  6, 20, gw=6, gh=8, color_mode="value", decimals=0,
+                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 10}, {"color": "red", "value": 50}]))
+    p.append(timeseries("エラー / フォールバック (rate)",
+                        [prom_target('sum(rate(shopai_chat_requests_total{result="error"}[5m]))', "エラー", "A"),
+                         prom_target("sum(rate(shopai_fallback_total[5m]))", "安全フォールバック", "B"),
+                         prom_target("sum(rate(shopai_auth_rejections_total[5m]))", "認証拒否", "C")],
+                        12, 20, gw=12, gh=8, unit="short", decimals=2, legend_table=True))
 
-    p.append(table("Recent safe-fallback (PostgreSQL)", [pg_target(
+    # ── 直近フォールバック (SQL) ────────────────────────────────────────────
+    p.append(row("📝 直近の安全フォールバック (PostgreSQL)", 28))
+    p.append(table("直近フォールバック 20件", [pg_target(
         "SELECT created_at AS time, location_id, route, answer_source, model_used, handoff_reason "
         "FROM question_logs WHERE answer_source = 'safe_fallback' "
-        "ORDER BY created_at DESC LIMIT 20;")], 0, 24, gw=24, gh=8))
+        "ORDER BY created_at DESC LIMIT 20;")], 0, 29, gw=24, gh=8))
 
-    return dashboard("shopai-system-overview", "ShopAI System Overview", p,
+    return dashboard("shopai-system-overview", "ShopAI システム概要", p,
                      ["shopai", "overview"])
 
 
@@ -231,57 +251,69 @@ def build_llm_gpu():
     global _id
     _id = 0
     p = []
-    p.append(gauge("GPU Util", [prom_target("shopai_gpu_utilization_percent")], 0, 0, gw=4, gh=6))
-    p.append(gauge("VRAM used %",
+    # ── GPU 状態 ────────────────────────────────────────────────────────────
+    p.append(row("🖥️ GPU 状態 (RTX 5070 Ti)", 0))
+    p.append(gauge("GPU 使用率", [prom_target("shopai_gpu_utilization_percent")], 0, 1, gw=4, gh=6))
+    p.append(gauge("VRAM 使用率",
                    [prom_target("100 * shopai_gpu_memory_used_mib / shopai_gpu_memory_total_mib")],
-                   4, 0, gw=4, gh=6,
+                   4, 1, gw=4, gh=6,
                    steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 80},
                           {"color": "red", "value": 92}]))
-    p.append(stat("GPU Temp", [prom_target("shopai_gpu_temperature_celsius")], 8, 0, gw=4, gh=6,
-                  unit="celsius", color_mode="value",
+    p.append(stat("GPU 温度", [prom_target("shopai_gpu_temperature_celsius")], 8, 1, gw=4, gh=6,
+                  unit="celsius", color_mode="value", decimals=0,
                   steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 70},
                          {"color": "red", "value": 82}]))
-    p.append(stat("Power", [prom_target("shopai_gpu_power_draw_watts")], 12, 0, gw=4, gh=6,
-                  unit="watt", color_mode="value"))
-    p.append(stat("GPU Clock (MHz)", [prom_target("shopai_gpu_clock_mhz")], 16, 0, gw=4, gh=6,
-                  unit="short", color_mode="value"))
-    p.append(stat("VRAM used (MiB)", [prom_target("shopai_gpu_memory_used_mib")], 20, 0, gw=4, gh=6,
-                  unit="decmbytes", color_mode="value"))
+    p.append(stat("消費電力", [prom_target("shopai_gpu_power_draw_watts")], 12, 1, gw=4, gh=6,
+                  unit="watt", color_mode="value", decimals=0))
+    p.append(stat("クロック (MHz)", [prom_target("shopai_gpu_clock_mhz")], 16, 1, gw=4, gh=6,
+                  unit="short", color_mode="value", decimals=0))
+    p.append(stat("VRAM 使用量", [prom_target("shopai_gpu_memory_used_mib * 1048576")], 20, 1, gw=4, gh=6,
+                  unit="bytes", color_mode="value", decimals=1))
 
-    p.append(stat("Requests running", [prom_target("vllm:num_requests_running")], 0, 6, gw=6,
-                  color_mode="value"))
-    p.append(stat("Requests waiting", [prom_target("vllm:num_requests_waiting")], 6, 6, gw=6,
-                  color_mode="value",
-                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 3}]))
-    p.append(gauge("KV cache usage", [prom_target("vllm:kv_cache_usage_perc * 100")], 12, 6, gw=6, gh=6))
-    p.append(stat("Prefix cache hit",
+    # ── vLLM スケジューラ ────────────────────────────────────────────────────
+    p.append(row("🚦 vLLM スケジューラ / キャッシュ", 7))
+    p.append(stat("処理中リクエスト", [prom_target("vllm:num_requests_running")], 0, 8, gw=6, gh=6,
+                  color_mode="value", decimals=0))
+    p.append(stat("待機中リクエスト", [prom_target("vllm:num_requests_waiting")], 6, 8, gw=6, gh=6,
+                  color_mode="value", decimals=0,
+                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 3}, {"color": "red", "value": 10}],
+                  desc="待ち行列。常時 0 が理想。増え続けるなら GPU が追いついていない"))
+    p.append(gauge("KV キャッシュ使用率", [prom_target("vllm:kv_cache_usage_perc * 100")], 12, 8, gw=6, gh=6))
+    p.append(stat("Prefix キャッシュ命中率",
                   [prom_target("sum(rate(vllm:prefix_cache_hits_total[5m])) / clamp_min(sum(rate(vllm:prefix_cache_queries_total[5m])), 1)")],
-                  18, 6, gw=6, gh=6, unit="percentunit", color_mode="value"))
+                  18, 8, gw=6, gh=6, unit="percentunit", color_mode="value", decimals=1))
 
-    p.append(timeseries("TTFT p50 / p95",
+    # ── レイテンシ ───────────────────────────────────────────────────────────
+    p.append(row("⏱️ 推論レイテンシ", 14))
+    p.append(timeseries("初回トークンまで TTFT (p50 / p95)",
                         [prom_target("histogram_quantile(0.50, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket[5m])))", "p50", "A"),
                          prom_target("histogram_quantile(0.95, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket[5m])))", "p95", "B")],
-                        0, 12, gw=12, unit="s", legend_table=True))
-    p.append(timeseries("E2E request latency p50 / p95",
+                        0, 15, gw=12, unit="s", decimals=3, legend_table=True))
+    p.append(timeseries("リクエスト全体 E2E (p50 / p95)",
                         [prom_target("histogram_quantile(0.50, sum by (le) (rate(vllm:e2e_request_latency_seconds_bucket[5m])))", "p50", "A"),
                          prom_target("histogram_quantile(0.95, sum by (le) (rate(vllm:e2e_request_latency_seconds_bucket[5m])))", "p95", "B")],
-                        12, 12, gw=12, unit="s", legend_table=True))
+                        12, 15, gw=12, unit="s", decimals=2, legend_table=True))
 
-    p.append(timeseries("Inter-token latency p95 (TPOT)",
+    # ── スループット ─────────────────────────────────────────────────────────
+    p.append(row("📈 スループット", 23))
+    p.append(timeseries("トークン間レイテンシ TPOT (p95)",
                         [prom_target("histogram_quantile(0.95, sum by (le) (rate(vllm:inter_token_latency_seconds_bucket[5m])))", "p95")],
-                        0, 20, gw=12, unit="s"))
-    p.append(timeseries("Generation token throughput (tok/s)",
+                        0, 24, gw=12, unit="s", decimals=3, legend_table=True))
+    p.append(timeseries("生成トークン スループット (tok/s)",
                         [prom_target("sum(rate(vllm:generation_tokens_total[5m]))", "tokens/s")],
-                        12, 20, gw=12, unit="short"))
+                        12, 24, gw=12, unit="short", decimals=1, legend_table=True))
 
-    p.append(stat("Reasoning sanitized (1h)",
-                  [prom_target("sum(increase(shopai_reasoning_sanitized_total[1h]))")],
-                  0, 28, gw=6, color_mode="value",
-                  steps=[{"color": "green", "value": None}, {"color": "red", "value": 1}]))
-    p.append(timeseries("LLM dispatch outcomes (backend view)",
+    # ── バックエンド連携 ─────────────────────────────────────────────────────
+    p.append(row("🧹 バックエンド連携", 32))
+    p.append(stat("推論サニタイズ (1h)",
+                  [prom_target("sum(increase(shopai_reasoning_sanitized_total[1h])) or vector(0)")],
+                  0, 33, gw=6, gh=8, color_mode="value", decimals=0,
+                  steps=[{"color": "green", "value": None}, {"color": "red", "value": 1}],
+                  desc="思考過程の漏れを除去した回数。0 が理想"))
+    p.append(timeseries("LLM ディスパッチ結果 (backend 視点)",
                         [prom_target("sum by (result, fallback_used) (rate(shopai_llm_dispatch_total[5m]))",
                                      "{{result}} fb={{fallback_used}}")],
-                        6, 28, gw=18, unit="short", legend_table=True))
+                        6, 33, gw=18, gh=8, unit="short", decimals=2, legend_table=True))
     return dashboard("shopai-llm-gpu", "ShopAI LLM & GPU", p, ["shopai", "llm", "gpu"])
 
 
@@ -289,43 +321,57 @@ def build_rag_quality():
     global _id
     _id = 0
     p = []
-    p.append(stat("Lexical hit rate",
+    # ── ヒット率 / レイテンシ ───────────────────────────────────────────────
+    hit_steps = [{"color": "red", "value": None}, {"color": "yellow", "value": 0.7}, {"color": "green", "value": 0.9}]
+    p.append(row("🎯 ヒット率 / 検索速度", 0))
+    p.append(stat("字句検索 ヒット率",
                   [prom_target('sum(rate(shopai_rag_retrieval_total{retrieval_type="lexical",result="hit"}[1h])) / clamp_min(sum(rate(shopai_rag_retrieval_total{retrieval_type="lexical"}[1h])), 1)')],
-                  0, 0, gw=6, gh=4, unit="percentunit", color_mode="value"))
-    p.append(stat("Vector hit rate",
+                  0, 1, gw=6, gh=5, unit="percentunit", color_mode="value", decimals=1, steps=hit_steps,
+                  desc="PGroonga (全文検索) が関連チャンクを返せた割合 (直近1h)"))
+    p.append(stat("ベクトル検索 ヒット率",
                   [prom_target('sum(rate(shopai_rag_retrieval_total{retrieval_type="vector",result="hit"}[1h])) / clamp_min(sum(rate(shopai_rag_retrieval_total{retrieval_type="vector"}[1h])), 1)')],
-                  6, 0, gw=6, gh=4, unit="percentunit", color_mode="value"))
-    p.append(stat("Fused no-hit rate",
+                  6, 1, gw=6, gh=5, unit="percentunit", color_mode="value", decimals=1, steps=hit_steps,
+                  desc="pgvector (意味検索) が関連チャンクを返せた割合 (直近1h)"))
+    p.append(stat("統合 ノーヒット率",
                   [prom_target('sum(rate(shopai_rag_retrieval_total{retrieval_type="fused",result="miss"}[1h])) / clamp_min(sum(rate(shopai_rag_retrieval_total{retrieval_type="fused"}[1h])), 1)')],
-                  12, 0, gw=6, gh=4, unit="percentunit", color_mode="value",
-                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.1}]))
-    p.append(stat("Retrieval p95 (fused)",
+                  12, 1, gw=6, gh=5, unit="percentunit", color_mode="value", decimals=1,
+                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.1}, {"color": "red", "value": 0.2}],
+                  desc="統合検索でも何も当たらなかった割合。低いほど良い"))
+    p.append(stat("検索 p95 (統合)",
                   [prom_target('histogram_quantile(0.95, sum by (le) (rate(shopai_rag_retrieval_duration_seconds_bucket{retrieval_type="fused"}[5m])))')],
-                  18, 0, gw=6, gh=4, unit="s", color_mode="value"))
+                  18, 1, gw=6, gh=5, unit="s", color_mode="value", decimals=2,
+                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.3}, {"color": "red", "value": 0.5}]))
 
-    p.append(timeseries("Retrieval outcome by type (1h increase)",
+    # ── 検索結果 / レイテンシ推移 ───────────────────────────────────────────
+    p.append(row("📊 検索結果 / 速度の推移", 6))
+    p.append(timeseries("種別×結果 件数 (1h)",
                         [prom_target("sum by (retrieval_type, result) (increase(shopai_rag_retrieval_total[1h]))",
                                      "{{retrieval_type}} {{result}}")],
-                        0, 4, gw=12, unit="short", legend_table=True))
-    p.append(timeseries("Retrieval latency p95 by type",
+                        0, 7, gw=12, unit="short", decimals=0, legend_table=True))
+    p.append(timeseries("種別別 検索 p95",
                         [prom_target("histogram_quantile(0.95, sum by (le, retrieval_type) (rate(shopai_rag_retrieval_duration_seconds_bucket[5m])))",
                                      "{{retrieval_type}}")],
-                        12, 4, gw=12, unit="s", legend_table=True))
+                        12, 7, gw=12, unit="s", decimals=2, legend_table=True))
 
-    p.append(timeseries("Chunks returned p50 by type",
+    # ── 根拠付与 / チャンク ─────────────────────────────────────────────────
+    p.append(row("📚 根拠付与 / チャンク数", 15))
+    p.append(timeseries("種別別 返却チャンク数 p50",
                         [prom_target("histogram_quantile(0.50, sum by (le, retrieval_type) (rate(shopai_rag_chunks_returned_bucket[5m])))",
                                      "{{retrieval_type}}")],
-                        0, 12, gw=12, unit="short", legend_table=True))
-    p.append(stat("Grounded answer rate (1 - fallback)",
+                        0, 16, gw=12, gh=8, unit="short", decimals=1, legend_table=True))
+    p.append(stat("根拠付き回答率 (1 - フォールバック)",
                   [prom_target("1 - (sum(rate(shopai_fallback_total[1h])) / clamp_min(sum(rate(shopai_chat_requests_total[1h])), 1))")],
-                  12, 12, gw=12, gh=8, unit="percentunit", color_mode="value", graph="area"))
+                  12, 16, gw=12, gh=8, unit="percentunit", color_mode="value", graph="area", decimals=1,
+                  steps=[{"color": "red", "value": None}, {"color": "yellow", "value": 0.8}, {"color": "green", "value": 0.9}]))
 
-    p.append(table("Top no-hit questions (PostgreSQL)", [pg_target(
+    # ── 未ヒット質問 (SQL) ──────────────────────────────────────────────────
+    p.append(row("📝 未ヒット質問 上位 (PostgreSQL)", 24))
+    p.append(table("未ヒット質問 上位20 (24h)", [pg_target(
         "SELECT date_trunc('hour', created_at) AS time, location_id, route, count(*) AS no_hit "
         "FROM question_logs WHERE answer_source = 'safe_fallback' "
         "AND created_at >= now() - interval '24 hours' "
-        "GROUP BY 1, 2, 3 ORDER BY no_hit DESC LIMIT 20;")], 0, 20, gw=24, gh=8))
-    return dashboard("shopai-rag-quality", "ShopAI RAG Quality", p, ["shopai", "rag"])
+        "GROUP BY 1, 2, 3 ORDER BY no_hit DESC LIMIT 20;")], 0, 25, gw=24, gh=8))
+    return dashboard("shopai-rag-quality", "ShopAI RAG 品質", p, ["shopai", "rag"])
 
 
 def build_voice_ops():

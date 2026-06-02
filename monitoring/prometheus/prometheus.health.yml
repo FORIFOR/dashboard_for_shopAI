@@ -48,11 +48,32 @@ scrape_configs:
       - targets: ["192.168.0.15:8081"]
         labels: { host: gpu-pc }
 
-  # ── GPU exporter (optional: temp/util for the GPU PC) ──────────────────────
+  # ── GPU exporter (temp/util for the GPU PC) ────────────────────────────────
   - job_name: shopai-gpu
     static_configs:
       - targets: ["192.168.0.15:9401"]
         labels: { host: gpu-pc }
+
+  # ── アプリ / 推論 / DB メトリクス (運用4ダッシュボード用) ─────────────────────
+  # これらが無いと System Overview / LLM&GPU / RAG / Voice が No data になる。
+  # backend の /metrics は token 必須。秘密値はコミットしないため、gitignore した
+  # backend_sd.json の __param_token ラベルから ?token= が自動付与される
+  # (cp backend_sd.json.example backend_sd.json してトークンを記入)。
+  - job_name: shopai-backend
+    metrics_path: /metrics
+    file_sd_configs:
+      - files: ["/etc/prometheus/backend_sd.json"]
+
+  - job_name: shopai-vllm
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["192.168.0.15:8000"]
+        labels: { host: gpu-pc }
+
+  - job_name: postgres
+    static_configs:
+      - targets: ["192.168.0.6:9187"]
+        labels: { host: backend-vm }
 
   # ── ICMP ping: "is the host alive?" ────────────────────────────────────────
   - job_name: ping
