@@ -186,14 +186,14 @@ def build_system_overview():
                   mappings=UP_MAP, steps=UP_STEPS))
     p.append(stat("GPU exporter", [prom_target('up{job="shopai-gpu"}')], 12, 1,
                   mappings=UP_MAP, steps=UP_STEPS))
-    p.append(stat("TTS", [prom_target('shopai_ready_component{component="tts"}')], 16, 1,
+    p.append(stat("TTS", [prom_target('shopai_ready_component{component="tts_gateway"}')], 16, 1,
                   mappings=UP_MAP, steps=UP_STEPS))
     p.append(stat("Database", [prom_target('shopai_ready_component{component="database"}')], 20, 1,
                   mappings=UP_MAP, steps=UP_STEPS))
 
     # ── 稼働モデル / レイテンシ (p95) ───────────────────────────────────────
     p.append(row("🤖 稼働モデル / 応答速度 (p95)", 5))
-    p.append(table("稼働中モデル", [prom_target("shopai_llm_model_info", instant=True)],
+    p.append(table("稼働中モデル", [prom_target("shopai_model_info", instant=True)],
                    0, 6, gw=12, gh=4, ds=PROM))
     lat3 = [{"color": "green", "value": None}, {"color": "yellow", "value": 0.5}, {"color": "red", "value": 1.0}]
     p.append(stat("API p95", [prom_target(
@@ -201,10 +201,10 @@ def build_system_overview():
         12, 6, gw=4, unit="s", color_mode="value", decimals=2, steps=lat3,
         desc="HTTP リクエスト全体の95パーセンタイル応答時間 (直近5分)"))
     p.append(stat("LLM p95", [prom_target(
-        "histogram_quantile(0.95, sum by (le) (rate(shopai_llm_node_latency_seconds_bucket[5m])))")],
+        "histogram_quantile(0.95, sum by (le) (rate(shopai_llm_dispatch_latency_seconds_bucket[5m])))")],
         16, 6, gw=4, unit="s", color_mode="value", decimals=2, steps=lat3))
-    p.append(stat("RAG p95 (fused)", [prom_target(
-        'histogram_quantile(0.95, sum by (le) (rate(shopai_rag_retrieval_duration_seconds_bucket{retrieval_type="fused"}[5m])))')],
+    p.append(stat("RAG p95", [prom_target(
+        "histogram_quantile(0.95, sum by (le) (rate(shopai_rag_retrieval_duration_seconds_bucket[5m])))")],
         20, 6, gw=4, unit="s", color_mode="value", decimals=2,
         steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.3}]))
 
@@ -222,18 +222,18 @@ def build_system_overview():
     # ── 異常 / フォールバック ───────────────────────────────────────────────
     p.append(row("⚠️ 異常 / フォールバック", 19))
     p.append(stat("安全フォールバック率",
-                  [prom_target("sum(rate(shopai_fallback_total[5m])) / clamp_min(sum(rate(shopai_chat_requests_total[5m])), 1)")],
+                  [prom_target("(sum(rate(shopai_chat_fallback_total[5m])) or vector(0)) / clamp_min(sum(rate(shopai_chat_requests_total[5m])), 1)")],
                   0, 20, gw=6, gh=8, unit="percentunit", color_mode="value", decimals=1,
                   steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.05}, {"color": "red", "value": 0.1}],
                   desc="回答できずフォールバックした割合。高いほど RAG/モデルが答えられていない"))
     p.append(stat("認証拒否 (1h)",
-                  [prom_target("sum(increase(shopai_auth_rejections_total[1h])) or vector(0)")],
+                  [prom_target("sum(increase(shopai_auth_denials_total[1h])) or vector(0)")],
                   6, 20, gw=6, gh=8, color_mode="value", decimals=0,
                   steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 10}, {"color": "red", "value": 50}]))
     p.append(timeseries("エラー / フォールバック (rate)",
-                        [prom_target('sum(rate(shopai_chat_requests_total{result="error"}[5m]))', "エラー", "A"),
-                         prom_target("sum(rate(shopai_fallback_total[5m]))", "安全フォールバック", "B"),
-                         prom_target("sum(rate(shopai_auth_rejections_total[5m]))", "認証拒否", "C")],
+                        [prom_target('sum(rate(shopai_llm_dispatch_total{outcome="error"}[5m])) or vector(0)', "LLMエラー", "A"),
+                         prom_target("sum(rate(shopai_chat_fallback_total[5m])) or vector(0)", "安全フォールバック", "B"),
+                         prom_target("sum(rate(shopai_auth_denials_total[5m])) or vector(0)", "認証拒否", "C")],
                         12, 20, gw=12, gh=8, unit="short", decimals=2, legend_table=True))
 
     # ── 直近フォールバック (SQL) ────────────────────────────────────────────
@@ -311,8 +311,8 @@ def build_llm_gpu():
                   steps=[{"color": "green", "value": None}, {"color": "red", "value": 1}],
                   desc="思考過程の漏れを除去した回数。0 が理想"))
     p.append(timeseries("LLM ディスパッチ結果 (backend 視点)",
-                        [prom_target("sum by (result, fallback_used) (rate(shopai_llm_dispatch_total[5m]))",
-                                     "{{result}} fb={{fallback_used}}")],
+                        [prom_target("sum by (route, outcome) (rate(shopai_llm_dispatch_total[5m]))",
+                                     "{{route}} {{outcome}}")],
                         6, 33, gw=18, gh=8, unit="short", decimals=2, legend_table=True))
     return dashboard("shopai-llm-gpu", "ShopAI LLM & GPU", p, ["shopai", "llm", "gpu"])
 
@@ -321,46 +321,47 @@ def build_rag_quality():
     global _id
     _id = 0
     p = []
-    # ── ヒット率 / レイテンシ ───────────────────────────────────────────────
+    # ── ヒット率 / 検索速度 (実機: outcome=hit/miss のハイブリッド1本) ─────────
     hit_steps = [{"color": "red", "value": None}, {"color": "yellow", "value": 0.7}, {"color": "green", "value": 0.9}]
+    total_1h = "clamp_min(sum(rate(shopai_rag_retrieval_total[1h])) or vector(0), 1)"
     p.append(row("🎯 ヒット率 / 検索速度", 0))
-    p.append(stat("字句検索 ヒット率",
-                  [prom_target('sum(rate(shopai_rag_retrieval_total{retrieval_type="lexical",result="hit"}[1h])) / clamp_min(sum(rate(shopai_rag_retrieval_total{retrieval_type="lexical"}[1h])), 1)')],
+    p.append(stat("検索ヒット率 (1h)",
+                  [prom_target(f'(sum(rate(shopai_rag_retrieval_total{{outcome="hit"}}[1h])) or vector(0)) / {total_1h}')],
                   0, 1, gw=6, gh=5, unit="percentunit", color_mode="value", decimals=1, steps=hit_steps,
-                  desc="PGroonga (全文検索) が関連チャンクを返せた割合 (直近1h)"))
-    p.append(stat("ベクトル検索 ヒット率",
-                  [prom_target('sum(rate(shopai_rag_retrieval_total{retrieval_type="vector",result="hit"}[1h])) / clamp_min(sum(rate(shopai_rag_retrieval_total{retrieval_type="vector"}[1h])), 1)')],
-                  6, 1, gw=6, gh=5, unit="percentunit", color_mode="value", decimals=1, steps=hit_steps,
-                  desc="pgvector (意味検索) が関連チャンクを返せた割合 (直近1h)"))
-    p.append(stat("統合 ノーヒット率",
-                  [prom_target('sum(rate(shopai_rag_retrieval_total{retrieval_type="fused",result="miss"}[1h])) / clamp_min(sum(rate(shopai_rag_retrieval_total{retrieval_type="fused"}[1h])), 1)')],
-                  12, 1, gw=6, gh=5, unit="percentunit", color_mode="value", decimals=1,
+                  desc="ハイブリッド検索 (PGroonga+pgvector+RRF) が1件以上チャンクを返せた割合"))
+    p.append(stat("ノーヒット率 (1h)",
+                  [prom_target(f'(sum(rate(shopai_rag_retrieval_total{{outcome="miss"}}[1h])) or vector(0)) / {total_1h}')],
+                  6, 1, gw=6, gh=5, unit="percentunit", color_mode="value", decimals=1,
                   steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.1}, {"color": "red", "value": 0.2}],
-                  desc="統合検索でも何も当たらなかった割合。低いほど良い"))
-    p.append(stat("検索 p95 (統合)",
-                  [prom_target('histogram_quantile(0.95, sum by (le) (rate(shopai_rag_retrieval_duration_seconds_bucket{retrieval_type="fused"}[5m])))')],
-                  18, 1, gw=6, gh=5, unit="s", color_mode="value", decimals=2,
+                  desc="検索しても何も当たらなかった割合。低いほど良い"))
+    p.append(stat("検索 p95",
+                  [prom_target("histogram_quantile(0.95, sum by (le) (rate(shopai_rag_retrieval_duration_seconds_bucket[5m])))")],
+                  12, 1, gw=6, gh=5, unit="s", color_mode="value", decimals=2,
                   steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.3}, {"color": "red", "value": 0.5}]))
+    p.append(stat("返却チャンク数 p50",
+                  [prom_target("histogram_quantile(0.50, sum by (le) (rate(shopai_rag_chunks_returned_bucket[5m])))")],
+                  18, 1, gw=6, gh=5, unit="short", color_mode="value", decimals=1,
+                  desc="1回の検索で LLM に渡したチャンク数の中央値"))
 
     # ── 検索結果 / レイテンシ推移 ───────────────────────────────────────────
     p.append(row("📊 検索結果 / 速度の推移", 6))
-    p.append(timeseries("種別×結果 件数 (1h)",
-                        [prom_target("sum by (retrieval_type, result) (increase(shopai_rag_retrieval_total[1h]))",
-                                     "{{retrieval_type}} {{result}}")],
+    p.append(timeseries("結果別 検索件数 (1h)",
+                        [prom_target("sum by (outcome) (increase(shopai_rag_retrieval_total[1h]))",
+                                     "{{outcome}}")],
                         0, 7, gw=12, unit="short", decimals=0, legend_table=True))
-    p.append(timeseries("種別別 検索 p95",
-                        [prom_target("histogram_quantile(0.95, sum by (le, retrieval_type) (rate(shopai_rag_retrieval_duration_seconds_bucket[5m])))",
-                                     "{{retrieval_type}}")],
+    p.append(timeseries("検索レイテンシ p50 / p95",
+                        [prom_target("histogram_quantile(0.50, sum by (le) (rate(shopai_rag_retrieval_duration_seconds_bucket[5m])))", "p50", "A"),
+                         prom_target("histogram_quantile(0.95, sum by (le) (rate(shopai_rag_retrieval_duration_seconds_bucket[5m])))", "p95", "B")],
                         12, 7, gw=12, unit="s", decimals=2, legend_table=True))
 
     # ── 根拠付与 / チャンク ─────────────────────────────────────────────────
     p.append(row("📚 根拠付与 / チャンク数", 15))
-    p.append(timeseries("種別別 返却チャンク数 p50",
-                        [prom_target("histogram_quantile(0.50, sum by (le, retrieval_type) (rate(shopai_rag_chunks_returned_bucket[5m])))",
-                                     "{{retrieval_type}}")],
+    p.append(timeseries("返却チャンク数 p50 / p95",
+                        [prom_target("histogram_quantile(0.50, sum by (le) (rate(shopai_rag_chunks_returned_bucket[5m])))", "p50", "A"),
+                         prom_target("histogram_quantile(0.95, sum by (le) (rate(shopai_rag_chunks_returned_bucket[5m])))", "p95", "B")],
                         0, 16, gw=12, gh=8, unit="short", decimals=1, legend_table=True))
     p.append(stat("根拠付き回答率 (1 - フォールバック)",
-                  [prom_target("1 - (sum(rate(shopai_fallback_total[1h])) / clamp_min(sum(rate(shopai_chat_requests_total[1h])), 1))")],
+                  [prom_target("1 - ((sum(rate(shopai_chat_fallback_total[1h])) or vector(0)) / clamp_min(sum(rate(shopai_chat_requests_total[1h])) or vector(0), 1))")],
                   12, 16, gw=12, gh=8, unit="percentunit", color_mode="value", graph="area", decimals=1,
                   steps=[{"color": "red", "value": None}, {"color": "yellow", "value": 0.8}, {"color": "green", "value": 0.9}]))
 

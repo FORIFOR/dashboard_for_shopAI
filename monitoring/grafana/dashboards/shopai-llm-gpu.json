@@ -1095,12 +1095,12 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (result, fallback_used) (rate(shopai_llm_dispatch_total[5m]))",
+          "expr": "sum by (route, outcome) (rate(shopai_llm_dispatch_total[5m]))",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "{{result}} fb={{fallback_used}}"
+          "legendFormat": "{{route}} {{outcome}}"
         }
       ]
     }

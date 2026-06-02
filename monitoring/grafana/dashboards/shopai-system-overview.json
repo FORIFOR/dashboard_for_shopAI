@@ -411,7 +411,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "shopai_ready_component{component=\"tts\"}",
+          "expr": "shopai_ready_component{component=\"tts_gateway\"}",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -537,7 +537,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "shopai_llm_model_info",
+          "expr": "shopai_model_info",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -673,7 +673,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_llm_node_latency_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_llm_dispatch_latency_seconds_bucket[5m])))",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -684,7 +684,7 @@
     {
       "id": 12,
       "type": "stat",
-      "title": "RAG p95 (fused)",
+      "title": "RAG p95",
       "description": "",
       "datasource": {
         "type": "prometheus",
@@ -736,7 +736,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_rag_retrieval_duration_seconds_bucket{retrieval_type=\"fused\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_rag_retrieval_duration_seconds_bucket[5m])))",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -961,7 +961,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(shopai_fallback_total[5m])) / clamp_min(sum(rate(shopai_chat_requests_total[5m])), 1)",
+          "expr": "(sum(rate(shopai_chat_fallback_total[5m])) or vector(0)) / clamp_min(sum(rate(shopai_chat_requests_total[5m])), 1)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -1027,7 +1027,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(shopai_auth_rejections_total[1h])) or vector(0)",
+          "expr": "sum(increase(shopai_auth_denials_total[1h])) or vector(0)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -1092,16 +1092,16 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(shopai_chat_requests_total{result=\"error\"}[5m]))",
+          "expr": "sum(rate(shopai_llm_dispatch_total{outcome=\"error\"}[5m])) or vector(0)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "\u30a8\u30e9\u30fc"
+          "legendFormat": "LLM\u30a8\u30e9\u30fc"
         },
         {
           "refId": "B",
-          "expr": "sum(rate(shopai_fallback_total[5m]))",
+          "expr": "sum(rate(shopai_chat_fallback_total[5m])) or vector(0)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -1110,7 +1110,7 @@
         },
         {
           "refId": "C",
-          "expr": "sum(rate(shopai_auth_rejections_total[5m]))",
+          "expr": "sum(rate(shopai_auth_denials_total[5m])) or vector(0)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
