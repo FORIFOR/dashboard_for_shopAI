@@ -24,9 +24,22 @@
   "panels": [
     {
       "id": 1,
+      "type": "row",
+      "title": "\ud83d\udd0a TTS \u521d\u56de\u97f3\u58f0 (First Audio)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
       "type": "stat",
-      "title": "TTS success rate",
-      "description": "",
+      "title": "\u521d\u56de\u97f3\u58f0 p50",
+      "description": "\u767a\u8a71\u30af\u30ea\u30c3\u30d7\u5230\u7740\u304b\u3089\u6700\u521d\u306e\u97f3\u58f0\u30c1\u30e3\u30f3\u30af\u307e\u3067 (\u4e2d\u592e\u5024)",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -35,7 +48,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -49,10 +62,19 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 1.0
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "s",
+          "decimals": 2
         },
         "overrides": []
       },
@@ -72,65 +94,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(shopai_tts_jobs_total{status=\"completed\"}[5m])) / clamp_min(sum(rate(shopai_tts_jobs_total[5m])), 1)",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "shopai-prometheus"
-          }
-        }
-      ]
-    },
-    {
-      "id": 2,
-      "type": "stat",
-      "title": "TTS p95 latency",
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "shopai-prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
-        "y": 0
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "textMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_tts_duration_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(shopai_tts_first_audio_latency_seconds_bucket[5m])))",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -141,7 +105,7 @@
     {
       "id": 3,
       "type": "stat",
-      "title": "Playback finished rate",
+      "title": "\u521d\u56de\u97f3\u58f0 p95",
       "description": "",
       "datasource": {
         "type": "prometheus",
@@ -150,8 +114,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 0
+        "x": 6,
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -165,10 +129,19 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 1.0
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "s",
+          "decimals": 2
         },
         "overrides": []
       },
@@ -188,7 +161,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(shopai_events_total{event_type=\"tts_playback_finished\"}[5m])) / clamp_min(sum(rate(shopai_events_total{event_type=\"tts_requested\"}[5m])), 1)",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_tts_first_audio_latency_seconds_bucket[5m])))",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -199,7 +172,65 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "Staff calls pending",
+      "title": "\u5408\u6210\u6570 (1h)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(shopai_tts_first_audio_latency_seconds_count[1h])) or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "TTS \u5931\u6557\u6570 (1h)",
       "description": "",
       "datasource": {
         "type": "prometheus",
@@ -209,7 +240,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -227,9 +258,14 @@
               {
                 "color": "yellow",
                 "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
               }
             ]
-          }
+          },
+          "decimals": 0
         },
         "overrides": []
       },
@@ -249,7 +285,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(shopai_staff_calls_total) - sum(shopai_staff_calls_total{status=\"resolved\"})",
+          "expr": "sum(increase(shopai_tts_failures_total[1h])) or vector(0)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -258,9 +294,9 @@
       ]
     },
     {
-      "id": 5,
+      "id": 6,
       "type": "timeseries",
-      "title": "TTS jobs by status (rate)",
+      "title": "\u30d7\u30ed\u30d0\u30a4\u30c0\u5225 \u521d\u56de\u97f3\u58f0 p95",
       "description": "",
       "datasource": {
         "type": "prometheus",
@@ -270,7 +306,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 4
+        "y": 5
       },
       "fieldConfig": {
         "defaults": {
@@ -284,7 +320,7 @@
           "color": {
             "mode": "palette-classic"
           },
-          "unit": "short",
+          "unit": "s",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -293,7 +329,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 2
         },
         "overrides": []
       },
@@ -313,19 +350,19 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (status) (rate(shopai_tts_jobs_total[5m]))",
+          "expr": "histogram_quantile(0.95, sum by (le, provider) (rate(shopai_tts_first_audio_latency_seconds_bucket[5m])))",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "{{status}}"
+          "legendFormat": "{{provider}}"
         }
       ]
     },
     {
-      "id": 6,
+      "id": 7,
       "type": "timeseries",
-      "title": "Android events by type (rate)",
+      "title": "\u30d7\u30ed\u30d0\u30a4\u30c0\u5225 \u5408\u6210\u30ec\u30fc\u30c8 (\u4ef6/\u5206)",
       "description": "",
       "datasource": {
         "type": "prometheus",
@@ -335,7 +372,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 4
+        "y": 5
       },
       "fieldConfig": {
         "defaults": {
@@ -358,7 +395,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "decimals": 1
         },
         "overrides": []
       },
@@ -378,19 +416,580 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (event_type) (rate(shopai_events_total[5m]))",
+          "expr": "sum by (provider) (rate(shopai_tts_first_audio_latency_seconds_count[5m])) * 60",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "{{event_type}}"
+          "legendFormat": "{{provider}}"
         }
       ]
     },
     {
-      "id": 7,
+      "id": 8,
+      "type": "row",
+      "title": "\u2699\ufe0f TTS \u54c1\u8cea (\u5408\u6210\u901f\u5ea6 / RTF)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "panels": []
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "\u5408\u6210 p95",
+      "description": "1\u30ea\u30af\u30a8\u30b9\u30c8\u306e TTS \u5408\u6210\u306b\u304b\u304b\u3063\u305f\u6642\u9593 (p95)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 14
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "RTF p95",
+      "description": "Real-time factor = \u5408\u6210\u79d2 / \u97f3\u58f0\u79d2\u30021\u672a\u6e80\u306a\u3089\u30ea\u30a2\u30eb\u30bf\u30a4\u30e0\u3088\u308a\u901f\u3044",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 14
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 1.0
+              }
+            ]
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_tts_rtf_bucket[5m])))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "\u5408\u6210\u30ec\u30a4\u30c6\u30f3\u30b7 p50 / p95",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "p50"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "\ud83e\udd1d \u30c1\u30e3\u30c3\u30c8\u904b\u7528 (\u30eb\u30fc\u30c8 / \u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "panels": []
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "\u30eb\u30fc\u30c8\u5225 \u30ea\u30af\u30a8\u30b9\u30c8 (req/s)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (route) (rate(shopai_chat_requests_total[5m]))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "{{route}}"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "\u56de\u7b54\u30bd\u30fc\u30b9\u5225 \u30ea\u30af\u30a8\u30b9\u30c8 (req/s)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (answer_source) (rate(shopai_chat_requests_total[5m]))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "{{answer_source}}"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af\u7406\u7531\u5225 (1h \u5897\u5206)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 31
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (reason) (increase(shopai_chat_fallback_total[1h]))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "{{reason}}"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "type": "stat",
+      "title": "\u8a8d\u8a3c\u62d2\u5426 (1h)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 31
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(shopai_auth_denials_total[1h])) or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "type": "stat",
+      "title": "\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af\u7dcf\u6570 (1h)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 31
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(shopai_chat_fallback_total[1h])) or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "type": "row",
+      "title": "\ud83d\udcdd \u30b9\u30bf\u30c3\u30d5\u5bfe\u5fdc / \u8a8d\u8a3c (PostgreSQL)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "panels": []
+    },
+    {
+      "id": 19,
       "type": "table",
-      "title": "Pending staff calls (PostgreSQL)",
+      "title": "\u4fdd\u7559\u4e2d\u30b9\u30bf\u30c3\u30d5\u547c\u3073\u51fa\u3057",
       "datasource": {
         "type": "postgres",
         "uid": "shopai-postgres"
@@ -399,7 +998,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 40
       },
       "fieldConfig": {
         "defaults": {
@@ -425,9 +1024,9 @@
       ]
     },
     {
-      "id": 8,
+      "id": 20,
       "type": "table",
-      "title": "Recent device auth rejections (PostgreSQL)",
+      "title": "\u76f4\u8fd1\u306e\u8a8d\u8a3c\u62d2\u5426",
       "datasource": {
         "type": "postgres",
         "uid": "shopai-postgres"
@@ -436,7 +1035,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 48
       },
       "fieldConfig": {
         "defaults": {

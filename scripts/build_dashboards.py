@@ -376,38 +376,79 @@ def build_rag_quality():
 
 
 def build_voice_ops():
+    """Voice & Operations — built on the metrics the deployed backend actually
+    emits (shopai_tts_* + chat/fallback/auth). The first-audio latency here is
+    the TTS-stage metric shopai_tts_first_audio_latency_seconds (clause -> first
+    audio chunk), which exists today; the end-to-end First-Audio KPI needs the
+    not-yet-deployed shopai_voice_* metrics."""
     global _id
     _id = 0
     p = []
-    p.append(stat("TTS success rate",
-                  [prom_target('sum(rate(shopai_tts_jobs_total{status="completed"}[5m])) / clamp_min(sum(rate(shopai_tts_jobs_total[5m])), 1)')],
-                  0, 0, gw=6, gh=4, unit="percentunit", color_mode="value"))
-    p.append(stat("TTS p95 latency",
-                  [prom_target("histogram_quantile(0.95, sum by (le) (rate(shopai_tts_duration_seconds_bucket[5m])))")],
-                  6, 0, gw=6, gh=4, unit="s", color_mode="value"))
-    p.append(stat("Playback finished rate",
-                  [prom_target('sum(rate(shopai_events_total{event_type="tts_playback_finished"}[5m])) / clamp_min(sum(rate(shopai_events_total{event_type="tts_requested"}[5m])), 1)')],
-                  12, 0, gw=6, gh=4, unit="percentunit", color_mode="value"))
-    p.append(stat("Staff calls pending",
-                  [prom_target('sum(shopai_staff_calls_total) - sum(shopai_staff_calls_total{status="resolved"})')],
-                  18, 0, gw=6, gh=4, color_mode="value",
-                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 1}]))
+    FA = "shopai_tts_first_audio_latency_seconds"
+    fa_steps = [{"color": "green", "value": None}, {"color": "yellow", "value": 0.7}, {"color": "red", "value": 1.0}]
 
-    p.append(timeseries("TTS jobs by status (rate)",
-                        [prom_target("sum by (status) (rate(shopai_tts_jobs_total[5m]))", "{{status}}")],
-                        0, 4, gw=12, unit="short", legend_table=True))
-    p.append(timeseries("Android events by type (rate)",
-                        [prom_target("sum by (event_type) (rate(shopai_events_total[5m]))", "{{event_type}}")],
-                        12, 4, gw=12, unit="short", legend_table=True))
+    # ── TTS 初回音声 (First Audio: clause -> first audio chunk) ────────────────
+    p.append(row("\U0001F50A TTS 初回音声 (First Audio)", 0))
+    p.append(stat("初回音声 p50", [prom_target(f"histogram_quantile(0.50, sum by (le) (rate({FA}_bucket[5m])))")],
+                  0, 1, gw=6, gh=4, unit="s", color_mode="value", decimals=2, steps=fa_steps,
+                  desc="発話クリップ到着から最初の音声チャンクまで (中央値)"))
+    p.append(stat("初回音声 p95", [prom_target(f"histogram_quantile(0.95, sum by (le) (rate({FA}_bucket[5m])))")],
+                  6, 1, gw=6, gh=4, unit="s", color_mode="value", decimals=2, steps=fa_steps))
+    p.append(stat("合成数 (1h)", [prom_target(f"sum(increase({FA}_count[1h])) or vector(0)")],
+                  12, 1, gw=6, gh=4, color_mode="value", decimals=0))
+    p.append(stat("TTS 失敗数 (1h)", [prom_target("sum(increase(shopai_tts_failures_total[1h])) or vector(0)")],
+                  18, 1, gw=6, gh=4, color_mode="value", decimals=0,
+                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 1}, {"color": "red", "value": 10}]))
 
-    p.append(table("Pending staff calls (PostgreSQL)", [pg_target(
+    p.append(timeseries("プロバイダ別 初回音声 p95",
+                        [prom_target(f"histogram_quantile(0.95, sum by (le, provider) (rate({FA}_bucket[5m])))",
+                                     "{{provider}}")],
+                        0, 5, gw=12, gh=8, unit="s", decimals=2, legend_table=True))
+    p.append(timeseries("プロバイダ別 合成レート (件/分)",
+                        [prom_target(f"sum by (provider) (rate({FA}_count[5m])) * 60", "{{provider}}")],
+                        12, 5, gw=12, gh=8, unit="short", decimals=1, legend_table=True))
+
+    # ── TTS 品質 (合成速度 / RTF) ──────────────────────────────────────────────
+    p.append(row("\u2699\uFE0F TTS 品質 (合成速度 / RTF)", 13))
+    p.append(stat("合成 p95", [prom_target("histogram_quantile(0.95, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))")],
+                  0, 14, gw=6, gh=4, unit="s", color_mode="value", decimals=2,
+                  desc="1リクエストの TTS 合成にかかった時間 (p95)"))
+    p.append(stat("RTF p95", [prom_target("histogram_quantile(0.95, sum by (le) (rate(shopai_tts_rtf_bucket[5m])))")],
+                  6, 14, gw=6, gh=4, color_mode="value", decimals=2,
+                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.7}, {"color": "red", "value": 1.0}],
+                  desc="Real-time factor = 合成秒 / 音声秒。1未満ならリアルタイムより速い"))
+    p.append(timeseries("合成レイテンシ p50 / p95",
+                        [prom_target("histogram_quantile(0.50, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))", "p50", "A"),
+                         prom_target("histogram_quantile(0.95, sum by (le) (rate(shopai_tts_generation_latency_seconds_bucket[5m])))", "p95", "B")],
+                        12, 14, gw=12, gh=8, unit="s", decimals=2, legend_table=True))
+
+    # ── チャット運用 (ルート / フォールバック / 認証) ──────────────────────────
+    p.append(row("\U0001F91D チャット運用 (ルート / フォールバック)", 22))
+    p.append(timeseries("ルート別 リクエスト (req/s)",
+                        [prom_target("sum by (route) (rate(shopai_chat_requests_total[5m]))", "{{route}}")],
+                        0, 23, gw=12, gh=8, unit="reqps", decimals=2, legend_table=True))
+    p.append(timeseries("回答ソース別 リクエスト (req/s)",
+                        [prom_target("sum by (answer_source) (rate(shopai_chat_requests_total[5m]))", "{{answer_source}}")],
+                        12, 23, gw=12, gh=8, unit="reqps", decimals=2, legend_table=True))
+    p.append(timeseries("フォールバック理由別 (1h 増分)",
+                        [prom_target("sum by (reason) (increase(shopai_chat_fallback_total[1h]))", "{{reason}}")],
+                        0, 31, gw=12, gh=8, unit="short", decimals=0, legend_table=True))
+    p.append(stat("認証拒否 (1h)", [prom_target("sum(increase(shopai_auth_denials_total[1h])) or vector(0)")],
+                  12, 31, gw=6, gh=8, color_mode="value", decimals=0,
+                  steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 10}, {"color": "red", "value": 50}]))
+    p.append(stat("フォールバック総数 (1h)", [prom_target("sum(increase(shopai_chat_fallback_total[1h])) or vector(0)")],
+                  18, 31, gw=6, gh=8, color_mode="value", decimals=0))
+
+    # ── スタッフ対応 / 認証 (PostgreSQL) ───────────────────────────────────────
+    p.append(row("\U0001F4DD スタッフ対応 / 認証 (PostgreSQL)", 39))
+    p.append(table("保留中スタッフ呼び出し", [pg_target(
         "SELECT created_at AS time, location_id, device_id, reason, status "
         "FROM staff_calls WHERE status = 'pending' ORDER BY created_at DESC LIMIT 20;")],
-        0, 12, gw=24, gh=8))
-    p.append(table("Recent device auth rejections (PostgreSQL)", [pg_target(
+        0, 40, gw=24, gh=8))
+    p.append(table("直近の認証拒否", [pg_target(
         "SELECT created_at AS time, device_id, location_id, reason "
         "FROM auth_events WHERE result = 'rejected' "
-        "ORDER BY created_at DESC LIMIT 20;")], 0, 20, gw=24, gh=8))
+        "ORDER BY created_at DESC LIMIT 20;")], 0, 48, gw=24, gh=8))
     return dashboard("shopai-voice-operations", "ShopAI Voice & Operations", p,
                      ["shopai", "voice", "staff"])
 
