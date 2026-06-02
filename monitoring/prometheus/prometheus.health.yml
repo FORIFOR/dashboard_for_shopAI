@@ -1,0 +1,117 @@
+# Prometheus config for the HEALTH / UPTIME monitoring stack.
+#
+# This stack is meant to run on a THIRD, always-on host (a small NUC / Raspberry
+# Pi / spare box) that is NOT the Backend VM or the GPU PC — so that when either
+# of those goes down, this monitor stays up and shows it (and fires an alert).
+#
+# Everything here is reachable by LAN IP, so the SAME file works on whatever
+# host you run the stack on. Edit the two IPs below if your hosts move.
+#
+# Targets monitored:
+#   Backend VM  192.168.0.6  : 8080 (FastAPI)  5432 (PostgreSQL)  9100 (node)  8081 (cadvisor)
+#   GPU PC      192.168.0.15 : 8000 (vLLM)      9401 (GPU exporter) 9100 (node) 8081 (cadvisor)
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alerts-health.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  # ── the monitor box itself ────────────────────────────────────────────────
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+  - job_name: blackbox
+    static_configs:
+      - targets: ["blackbox:9115"]
+
+  # ── host vitals: CPU / mem / disk / reboot detection ───────────────────────
+  # Requires node-exporter on each host (docker-compose.agent.yml).
+  - job_name: node
+    static_configs:
+      - targets: ["192.168.0.6:9100"]
+        labels: { host: backend-vm }
+      - targets: ["192.168.0.15:9100"]
+        labels: { host: gpu-pc }
+
+  # ── container states (is each docker service running?) ─────────────────────
+  - job_name: cadvisor
+    static_configs:
+      - targets: ["192.168.0.6:8081"]
+        labels: { host: backend-vm }
+      - targets: ["192.168.0.15:8081"]
+        labels: { host: gpu-pc }
+
+  # ── GPU exporter (optional: temp/util for the GPU PC) ──────────────────────
+  - job_name: shopai-gpu
+    static_configs:
+      - targets: ["192.168.0.15:9401"]
+        labels: { host: gpu-pc }
+
+  # ── ICMP ping: "is the host alive?" ────────────────────────────────────────
+  - job_name: ping
+    metrics_path: /probe
+    params: { module: [icmp] }
+    static_configs:
+      - targets:
+          - 192.168.0.6
+          - 192.168.0.15
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [__param_target]      # host = IP without scheme/port (for alert grouping)
+        regex: '(?:https?://)?([^:/]+).*'
+        target_label: host
+        replacement: "${1}"
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  # ── TCP connect: "is the service port open?" ───────────────────────────────
+  - job_name: tcp-probe
+    metrics_path: /probe
+    params: { module: [tcp_connect] }
+    static_configs:
+      - targets:
+          - 192.168.0.6:8080      # Backend API
+          - 192.168.0.6:5432      # PostgreSQL
+          - 192.168.0.15:8000     # vLLM
+          - 192.168.0.15:9401     # GPU exporter
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [__param_target]
+        regex: '(?:https?://)?([^:/]+).*'
+        target_label: host
+        replacement: "${1}"
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  # ── HTTP 2xx: "does the health endpoint answer OK?" ────────────────────────
+  - job_name: http-probe
+    metrics_path: /probe
+    params: { module: [http_2xx] }
+    static_configs:
+      - targets:
+          - http://192.168.0.15:8000/health   # vLLM health
+          - http://192.168.0.6:8080/health    # Backend health (open; /metrics needs a token)
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [__param_target]
+        regex: '(?:https?://)?([^:/]+).*'
+        target_label: host
+        replacement: "${1}"
+      - target_label: __address__
+        replacement: blackbox:9115

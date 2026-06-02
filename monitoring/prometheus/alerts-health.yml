@@ -1,0 +1,71 @@
+# Health / uptime alerts. Paired with prometheus.health.yml + alertmanager.yml.
+# Severity convention: critical = something is DOWN now; warning = will hurt soon.
+groups:
+  - name: shopai-health
+    rules:
+      # ── liveness ────────────────────────────────────────────────────────────
+      - alert: HostUnreachable
+        expr: probe_success{job="ping"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "ホスト {{ $labels.instance }} に ping が通りません (ダウンの可能性)"
+          description: "1分以上 ICMP 応答なし。電源・ネットワーク・OSハングを確認。"
+
+      - alert: ServicePortDown
+        expr: probe_success{job="tcp-probe"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "サービス {{ $labels.instance }} のポートが閉じています"
+          description: "TCP 接続不可。プロセス/コンテナが落ちている可能性。"
+
+      - alert: HTTPHealthFailing
+        expr: probe_success{job="http-probe"} == 0
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.instance }} の /health が 2xx を返しません"
+          description: "ポートは開いているが正常応答ではない。アプリ内部の異常の可能性。"
+
+      - alert: NodeExporterDown
+        expr: up{job="node"} == 0
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.host }} のホストメトリクスが取得できません"
+          description: "node-exporter が応答しません (docker-compose.agent.yml を確認)。"
+
+      # ── host health ─────────────────────────────────────────────────────────
+      - alert: HostRebooted
+        expr: changes(node_boot_time_seconds[10m]) > 0
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.host }} が再起動しました"
+          description: "直近10分以内に起動時刻が変化 (予期せぬ再起動/電源断の可能性)。"
+
+      - alert: DiskAlmostFull
+        expr: |
+          100 * (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs"}
+                    / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs"}) > 90
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.host }} のディスク {{ $labels.mountpoint }} が90%超"
+          description: "空き容量が逼迫。ログ/不要データの掃除を検討。"
+
+      - alert: MemoryHigh
+        expr: 100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 92
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.host }} のメモリ使用率が92%超"
+
+      # ── GPU (optional) ───────────────────────────────────────────────────────
+      - alert: GPUTemperatureHigh
+        expr: shopai_gpu_temperature_celsius > 85
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "GPU 温度が高すぎます ({{ $value | printf \"%.0f\" }}°C)"

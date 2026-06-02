@@ -365,9 +365,97 @@ def build_voice_ops():
                      ["shopai", "voice", "staff"])
 
 
+def build_service_health():
+    """Health / uptime screen — "is everything up?" at a glance.
+
+    Pure Prometheus (no PostgreSQL), driven by blackbox probe_success + the
+    node-exporter/cadvisor agents. Pairs with prometheus.health.yml. This is the
+    landing dashboard for the stand-alone health stack (docker-compose.health.yml).
+    """
+    global _id
+    _id = 0
+    p = []
+
+    BV, GP = "192.168.0.6", "192.168.0.15"   # backend-vm, gpu-pc
+
+    # ── headline: is anything down right now? ───────────────────────────────
+    p.append(row("🟢 全体ステータス", 0))
+    p.append(stat("全死活チェック (1つでも赤ければ要対応)",
+                  [prom_target("min(probe_success)")], 0, 1, gw=12, gh=4,
+                  mappings=UP_MAP, steps=UP_STEPS, text_mode="value"))
+    p.append(stat("ダウン中の数",
+                  [prom_target("count(probe_success == 0) or vector(0)")],
+                  12, 1, gw=6, gh=4, color_mode="value",
+                  steps=[{"color": "green", "value": None}, {"color": "red", "value": 1}]))
+    p.append(stat("発火中アラート",
+                  [prom_target('count(ALERTS{alertstate="firing"}) or vector(0)')],
+                  18, 1, gw=6, gh=4, color_mode="value",
+                  steps=[{"color": "green", "value": None}, {"color": "red", "value": 1}]))
+
+    # ── per-service liveness grid (green=UP / red=DOWN) ─────────────────────
+    p.append(row("サービス別 死活 (UP / DOWN)", 5))
+    grid = [
+        ("Backend VM (ping)",   f'probe_success{{job="ping",instance="{BV}"}}'),
+        ("GPU PC (ping)",       f'probe_success{{job="ping",instance="{GP}"}}'),
+        ("Backend API :8080",   f'probe_success{{job="tcp-probe",instance="{BV}:8080"}}'),
+        ("PostgreSQL :5432",    f'probe_success{{job="tcp-probe",instance="{BV}:5432"}}'),
+        ("vLLM :8000",          f'probe_success{{job="tcp-probe",instance="{GP}:8000"}}'),
+        ("GPU exporter :9401",  f'probe_success{{job="tcp-probe",instance="{GP}:9401"}}'),
+        ("vLLM /health",        f'probe_success{{job="http-probe",instance="http://{GP}:8000/health"}}'),
+        ("Backend /health",     f'probe_success{{job="http-probe",instance="http://{BV}:8080/health"}}'),
+    ]
+    for i, (title, expr) in enumerate(grid):
+        p.append(stat(title, [prom_target(expr)], (i % 6) * 4, 6 + (i // 6) * 4,
+                      gw=4, gh=4, mappings=UP_MAP, steps=UP_STEPS))
+
+    # ── host vitals ──────────────────────────────────────────────────────────
+    p.append(row("ホスト リソース (Backend VM / GPU PC)", 14))
+    p.append(timeseries("CPU 使用率 (%)",
+                        [prom_target("100 - (avg by (host) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+                                     "{{host}}")],
+                        0, 15, gw=8, gh=6, unit="percent", legend_table=True))
+    p.append(timeseries("メモリ使用率 (%)",
+                        [prom_target("100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)",
+                                     "{{host}}")],
+                        8, 15, gw=8, gh=6, unit="percent", legend_table=True))
+    p.append(timeseries("ディスク使用率 (% / ルート)",
+                        [prom_target('100 * (1 - node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay|squashfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay|squashfs"})',
+                                     "{{host}}")],
+                        16, 15, gw=8, gh=6, unit="percent", legend_table=True))
+
+    # ── uptime / reboot detection + probe latency ───────────────────────────
+    p.append(row("稼働時間 / 応答時間", 21))
+    p.append(stat("Backend VM 稼働時間",
+                  [prom_target('node_time_seconds{host="backend-vm"} - node_boot_time_seconds{host="backend-vm"}')],
+                  0, 22, gw=6, gh=4, unit="s", color_mode="value"))
+    p.append(stat("GPU PC 稼働時間",
+                  [prom_target('node_time_seconds{host="gpu-pc"} - node_boot_time_seconds{host="gpu-pc"}')],
+                  6, 22, gw=6, gh=4, unit="s", color_mode="value"))
+    p.append(timeseries("外形応答時間 (probe_duration)",
+                        [prom_target("probe_duration_seconds", "{{instance}}")],
+                        12, 22, gw=12, gh=6, unit="s", legend_table=True))
+
+    # ── container states ─────────────────────────────────────────────────────
+    p.append(row("コンテナ稼働 (cadvisor)", 28))
+    p.append(stat("Backend VM コンテナ数",
+                  [prom_target('count(container_last_seen{host="backend-vm",name=~".+"})')],
+                  0, 29, gw=6, gh=4, color_mode="value"))
+    p.append(stat("GPU PC コンテナ数",
+                  [prom_target('count(container_last_seen{host="gpu-pc",name=~".+"})')],
+                  6, 29, gw=6, gh=4, color_mode="value"))
+    p.append(timeseries("コンテナ CPU 使用率 上位 (%)",
+                        [prom_target('topk(10, sum by (name) (rate(container_cpu_usage_seconds_total{name=~".+"}[5m])) * 100)',
+                                     "{{name}}")],
+                        12, 29, gw=12, gh=6, unit="percent", legend_table=True))
+
+    return dashboard("shopai-service-health", "ShopAI Service Health", p,
+                     ["shopai", "health", "uptime"], refresh="30s")
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     builders = {
+        "shopai-service-health.json": build_service_health,
         "shopai-system-overview.json": build_system_overview,
         "shopai-llm-gpu.json": build_llm_gpu,
         "shopai-rag-quality.json": build_rag_quality,

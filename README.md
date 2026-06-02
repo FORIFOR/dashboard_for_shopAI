@@ -6,6 +6,10 @@ ShopAI の Backend / PostgreSQL / Hybrid RAG / vLLM / GPU / TTS / Staff を
 > **はじめての人へ:** セットアップは各マシンで `./setup.sh` を1回ずつ実行するだけ。
 > 手順は **[SETUP.md](SETUP.md)**、概要は **[ONBOARDING.md](ONBOARDING.md)** を参照。
 
+> **「落ちてないか」だけ手早く監視したい場合** → **[MONITORING-HEALTH.md](MONITORING-HEALTH.md)**。
+> 3台目の常時稼働機に乗せる、DB不要・独立の死活監視スタック (Service Health 画面 + 通知)。
+> `docker-compose.health.yml` (監視機) + `docker-compose.agent.yml` (監視対象)。
+
 ## このマシンと配置先 (重要)
 
 このリポジトリは **GPU PC (192.168.0.15 / vLLM Fast Node)** 上で作成された。
@@ -102,6 +106,7 @@ scripts/verify_prometheus_targets.sh localhost:9090
 
 | UID | 画面 | 主な内容 |
 | --- | --- | --- |
+| `shopai-service-health` | Service Health | **死活監視**: 各ホスト/サービスの UP/DOWN, CPU/メモリ/ディスク, 稼働時間, コンテナ数 (純Prometheus・[MONITORING-HEALTH.md](MONITORING-HEALTH.md)) |
 | `shopai-system-overview` | System Overview | Backend/DB/LLM/GPU/TTS 稼働, active model, API/LLM/RAG p95, route別件数, fallback/auth, 直近fallback(SQL) |
 | `shopai-llm-gpu` | LLM & GPU | GPU util/VRAM/温度/電力/clock, vLLM running/waiting, TTFT/E2E/TPOT, KV/prefix cache, reasoning sanitize数 |
 | `shopai-rag-quality` | RAG Quality | lexical/vector/fused hit率, retrieval latency, no-hit率, grounded率, top no-hit(SQL) |

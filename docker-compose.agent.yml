@@ -1,0 +1,39 @@
+# Lightweight monitoring AGENT — run this on every host you want watched
+# (Backend VM 192.168.0.6 and GPU PC 192.168.0.15).
+#
+# It only EXPOSES metrics; the health stack (docker-compose.health.yml on the
+# 3rd box) scrapes them. No Grafana/Prometheus here.
+#
+#   docker compose -f docker-compose.agent.yml up -d
+#
+# Exposes:  node-exporter :9100  (CPU/mem/disk/uptime)   cadvisor :8081 (containers)
+# If a firewall is on, allow the monitor box to reach these ports, e.g.:
+#   sudo ufw allow from <monitor-ip> to any port 9100 proto tcp
+#   sudo ufw allow from <monitor-ip> to any port 8081 proto tcp
+
+services:
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: shopai-node-exporter
+    restart: unless-stopped
+    pid: host
+    ports:
+      - "9100:9100"
+    command:
+      - "--path.rootfs=/host"
+    volumes:
+      - "/:/host:ro,rslave"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: shopai-cadvisor
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro

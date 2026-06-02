@@ -1,0 +1,28 @@
+# blackbox-exporter modules — probe hosts/services from OUTSIDE.
+# Used by the health-monitoring stack (docker-compose.health.yml) so the monitor
+# box can tell "is this PC reachable / is this port open / does /health return
+# 2xx" even when the target exposes no Prometheus metrics (e.g. TTS engines).
+modules:
+  # ICMP ping — "is the host alive at all?"
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: ip4
+
+  # TCP connect — "is the service port open?" (no payload, just SYN/ACK)
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: ip4
+
+  # HTTP 2xx — "does the health endpoint answer OK?"
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      method: GET
+      preferred_ip_protocol: ip4
+      valid_status_codes: []          # empty = any 2xx is success
+      fail_if_not_ssl: false

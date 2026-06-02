@@ -1,0 +1,55 @@
+# Alertmanager routing for the health stack.
+#
+# OUT OF THE BOX this drops all notifications (the default receiver is empty) so
+# the stack starts cleanly. To actually get notified, pick ONE channel below,
+# fill in the placeholder, uncomment it, and restart alertmanager:
+#   docker compose -f docker-compose.health.yml restart alertmanager
+#
+# Test without waiting for a real outage:
+#   stop node-exporter on one host -> HostUnreachable/ServicePortDown fires.
+
+route:
+  receiver: default
+  group_by: ["alertname", "host", "instance"]
+  group_wait: 30s          # bundle alerts that fire close together
+  group_interval: 5m
+  repeat_interval: 4h      # re-remind every 4h while still firing
+  routes:
+    - matchers: [severity = "critical"]
+      receiver: default
+      repeat_interval: 1h  # nag harder for DOWN events
+
+receivers:
+  - name: default
+    # ── Slack ────────────────────────────────────────────────────────────────
+    # slack_configs:
+    #   - api_url: "https://hooks.slack.com/services/XXX/YYY/ZZZ"
+    #     channel: "#shopai-alerts"
+    #     send_resolved: true
+    #     title: '{{ .CommonLabels.severity | toUpper }}: {{ .CommonAnnotations.summary }}'
+    #     text: '{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}'
+    #
+    # ── Discord (native since Alertmanager v0.25) ─────────────────────────────
+    # discord_configs:
+    #   - webhook_url: "https://discord.com/api/webhooks/XXX/YYY"
+    #     send_resolved: true
+    #
+    # ── Email ──────────────────────────────────────────────────────────────────
+    # email_configs:
+    #   - to: "ops@example.com"
+    #     from: "shopai-monitor@example.com"
+    #     smarthost: "smtp.example.com:587"
+    #     auth_username: "shopai-monitor@example.com"
+    #     auth_password: "APP_PASSWORD"
+    #     send_resolved: true
+    #
+    # ── Generic webhook (n8n / Zapier / custom relay) ─────────────────────────
+    # webhook_configs:
+    #   - url: "http://your-relay:5001/alert"
+    #     send_resolved: true
+
+inhibit_rules:
+  # If a whole host is unreachable, suppress the noisier per-port alerts for it.
+  - source_matchers: [alertname = "HostUnreachable"]
+    target_matchers: [alertname =~ "ServicePortDown|HTTPHealthFailing"]
+    equal: [host]
