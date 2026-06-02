@@ -1,0 +1,5 @@
+[
+  { "targets": ["192.168.0.31"], "labels": { "name": "tablet-001", "kind": "tablet" } },
+  { "targets": ["192.168.0.32"], "labels": { "name": "tablet-002", "kind": "tablet" } },
+  { "targets": ["192.168.0.40"], "labels": { "name": "reception-pc", "kind": "pc" } }
+]

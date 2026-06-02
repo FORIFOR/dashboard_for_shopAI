@@ -4,6 +4,8 @@
 !.env.example
 # backend /metrics token lives here (see backend_sd.json.example)
 monitoring/prometheus/backend_sd.json
+# monitored device IPs (tablets etc.) — see devices.json.example
+monitoring/prometheus/devices.json
 
 # Python
 __pycache__/

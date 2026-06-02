@@ -25,6 +25,8 @@ services:
       - ./monitoring/prometheus/alerts-health.yml:/etc/prometheus/alerts-health.yml:ro
       # backend /metrics token (gitignored; cp backend_sd.json.example backend_sd.json)
       - ./monitoring/prometheus/backend_sd.json:/etc/prometheus/backend_sd.json:ro
+      # monitored device IPs (gitignored; cp devices.json.example devices.json)
+      - ./monitoring/prometheus/devices.json:/etc/prometheus/devices.json:ro
       - health_prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"

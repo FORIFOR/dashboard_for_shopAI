@@ -530,6 +530,16 @@ def build_service_health():
                                      "{{name}}")],
                         12, 29, gw=12, gh=6, unit="percent", legend_table=True))
 
+    # ── 端末 (タブレット/PC) 死活: devices.json に IP を追記すると表示 ──────────
+    p.append(row("📱 端末 死活 (devices.json に IP を追加すると表示)", 35))
+    p.append(stat("端末 UP/DOWN",
+                  [prom_target('probe_success{job="device-ping"}', "{{name}}")],
+                  0, 36, gw=12, gh=6, mappings=UP_MAP, steps=UP_STEPS, color_mode="background",
+                  desc="ICMP ping。Android タブレットは省電力スリープで落ちて見えることがある (要注意)"))
+    p.append(timeseries("端末 応答時間 (ping)",
+                        [prom_target('probe_duration_seconds{job="device-ping"}', "{{name}}")],
+                        12, 36, gw=12, gh=6, unit="s", decimals=3, legend_table=True))
+
     return dashboard("shopai-service-health", "ShopAI Service Health", p,
                      ["shopai", "health", "uptime"], refresh="30s")
 

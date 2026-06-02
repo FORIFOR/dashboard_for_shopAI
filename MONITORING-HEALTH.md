@@ -76,20 +76,65 @@ docker compose -f docker-compose.health.yml restart alertmanager
 動作確認は、監視対象のどれか1つ（例: agent の node-exporter）を止めると
 `ServicePortDown` / `HostUnreachable` が発火する。
 
-### 4) 他PC・外出先から見る (VPN)
+### 4) 他端末から UI を見る (LAN / VPN)
 
-同一LANの他PCからは `http://<監視機>:3000` でそのまま閲覧可。外出先からも見たい
-場合は **Tailscale** が簡単（インターネットに公開せず、どこからでもアクセス可）。
+Grafana・Prometheus・Alertmanager は `0.0.0.0` で待ち受けているので、ネットワーク
+到達性とホストのファイアウォールさえ許可すれば、どの端末のブラウザからでも見られる。
+
+**(a) 同一LANの他PC・タブレットから** — 監視機の UFW で UI ポートを LAN に開放:
 
 ```bash
-# 監視機で:
-curl -fsSL https://tailscale.com/install.sh | sh
-sudo tailscale up
-# → 表示された 100.x.x.x で http://100.x.x.x:3000 にどの端末からでもアクセス
+# 監視機で (LAN を 192.168.0.0/24 と仮定。自分の LAN に合わせる)
+! sudo ufw allow from 192.168.0.0/24 to any port 3000 proto tcp   # Grafana
+! sudo ufw allow from 192.168.0.0/24 to any port 9090 proto tcp   # Prometheus
+! sudo ufw allow from 192.168.0.0/24 to any port 9093 proto tcp   # Alertmanager
+# → 他端末のブラウザで  http://<監視機の LAN IP>:3000
+```
+
+**(b) 外出先・別ネットワークから (VPN: Tailscale)** — インターネット非公開のまま、
+どの端末からでもアクセス可:
+
+```bash
+# 監視機で
+! curl -fsSL https://tailscale.com/install.sh | sh
+! sudo tailscale up          # 表示URLでブラウザ認証
+! sudo ufw allow in on tailscale0   # tailnet からの全ポートを許可
+# 見る側の端末 (スマホ/PC) にも Tailscale を入れて同じアカウントでログイン
+# → http://<監視機の 100.x.x.x>:3000  (tailscale ip -4 で確認)
 ```
 
 > セキュリティ方針 (README §22) どおり、Grafana/Prometheus はインターネットに直接
 > 公開しない。LAN または VPN(Tailscale/WireGuard) 内に限定する。
+
+### 5) どのPCでも起動できる (可搬性)
+
+このスタックは**どのマシンでも `docker compose -f docker-compose.health.yml up -d`
+だけで起動**する（DB 認証情報も不要）。監視対象は `prometheus.health.yml` 冒頭の
+LAN IP で指定しているだけなので、監視機をどこに移しても同じ設定で動く。別PCに移す:
+
+```bash
+rsync -a ~/Project/shopai-dashboard/ <新監視機>:~/shopai-dashboard/
+# 新監視機で .env を用意 (GRAFANA_ADMIN_PASSWORD)・必要なら backend_sd.json
+docker compose -f docker-compose.health.yml --env-file .env up -d
+```
+
+> 監視機を GPU PC 以外に移すと、本書冒頭の「GPU-PC firewall 注意」(コンテナ→自ホスト
+> 遮断) は不要になる（vLLM/GPU が別ホスト＝リモート扱いになるため）。
+
+### 6) タブレット等の端末も監視する
+
+`monitoring/prometheus/devices.json`（gitignore 済み）に IP を足すと、ICMP ping で
+死活監視し、Service Health の「📱 端末 死活」に UP/DOWN と応答時間が出る:
+
+```bash
+cp monitoring/prometheus/devices.json.example monitoring/prometheus/devices.json
+$EDITOR monitoring/prometheus/devices.json   # 店舗端末の IP と name を記入
+docker compose -f docker-compose.health.yml restart prometheus
+```
+
+> ⚠️ Android タブレットは省電力で WiFi がスリープすると ping が落ち、実際は生きて
+> いても DOWN に見えることがある。誤検知が多い場合は WiFi のスリープ無効化、または
+> この端末監視を外す。空配列のままなら端末監視は無効（誤検知なし）。
 
 ## ダッシュボード「Service Health」の見方
 
@@ -100,6 +145,7 @@ sudo tailscale up
 | ホスト リソース | CPU / メモリ / ディスク使用率 (ホスト別) |
 | 稼働時間 / 応答時間 | 稼働時間(再起動で 0 に戻る) / 外形応答時間 |
 | コンテナ稼働 | ホスト別コンテナ数 / コンテナ CPU 上位 |
+| 📱 端末 死活 | `devices.json` の端末の UP/DOWN・ping 応答時間（IP 登録時のみ表示） |
 
 ダッシュボードは `python3 scripts/build_dashboards.py` で再生成して JSON をコミット。
 

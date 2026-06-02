@@ -95,6 +95,23 @@ scrape_configs:
       - target_label: __address__
         replacement: blackbox:9115
 
+  # ── 端末 (タブレット/PC) の死活: ICMP ping ────────────────────────────────
+  # IP は monitoring/prometheus/devices.json に追記 (gitignore; devices.json.example
+  # 参照)。空配列なら対象なし=誤検知なし。注意: Android タブレットは省電力で
+  # WiFi がスリープすると ping が落ちることがある (= 実停止でなくても DOWN 表示)。
+  - job_name: device-ping
+    metrics_path: /probe
+    params: { module: [icmp] }
+    file_sd_configs:
+      - files: ["/etc/prometheus/devices.json"]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__address__]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
   # ── TCP connect: "is the service port open?" ───────────────────────────────
   - job_name: tcp-probe
     metrics_path: /probe
