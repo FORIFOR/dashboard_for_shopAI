@@ -44,7 +44,7 @@
         "uid": "shopai-prometheus"
       },
       "gridPos": {
-        "h": 4,
+        "h": 8,
         "w": 24,
         "x": 0,
         "y": 1
@@ -96,7 +96,7 @@
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "\u30a2\u30af\u30bb\u30b9/\u5206"
+          "legendFormat": "\u30a2\u30af\u30bb\u30b9/\u5206 (\u5408\u8a08)"
         },
         {
           "refId": "B",
@@ -118,7 +118,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 9
       },
       "panels": []
     },
@@ -135,7 +135,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 6
+        "y": 10
       },
       "fieldConfig": {
         "defaults": {
@@ -212,7 +212,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 6
+        "y": 10
       },
       "fieldConfig": {
         "defaults": {
@@ -289,7 +289,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 6
+        "y": 10
       },
       "fieldConfig": {
         "defaults": {
@@ -366,7 +366,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 6
+        "y": 10
       },
       "fieldConfig": {
         "defaults": {
@@ -443,7 +443,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 6
+        "y": 10
       },
       "fieldConfig": {
         "defaults": {
@@ -520,7 +520,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 6
+        "y": 10
       },
       "fieldConfig": {
         "defaults": {
@@ -593,7 +593,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 14
       },
       "panels": []
     },
@@ -609,7 +609,7 @@
         "h": 4,
         "w": 12,
         "x": 0,
-        "y": 11
+        "y": 15
       },
       "fieldConfig": {
         "defaults": {
@@ -648,7 +648,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 11
+        "y": 15
       },
       "fieldConfig": {
         "defaults": {
@@ -715,7 +715,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 11
+        "y": 15
       },
       "fieldConfig": {
         "defaults": {
@@ -782,7 +782,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 11
+        "y": 15
       },
       "fieldConfig": {
         "defaults": {
@@ -841,7 +841,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 19
       },
       "panels": []
     },
@@ -858,7 +858,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 20
       },
       "fieldConfig": {
         "defaults": {
@@ -924,7 +924,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 20
       },
       "fieldConfig": {
         "defaults": {
@@ -986,7 +986,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 28
       },
       "panels": []
     },
@@ -1003,7 +1003,7 @@
         "h": 8,
         "w": 6,
         "x": 0,
-        "y": 25
+        "y": 29
       },
       "fieldConfig": {
         "defaults": {
@@ -1070,7 +1070,7 @@
         "h": 8,
         "w": 6,
         "x": 6,
-        "y": 25
+        "y": 29
       },
       "fieldConfig": {
         "defaults": {
@@ -1136,7 +1136,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 25
+        "y": 29
       },
       "fieldConfig": {
         "defaults": {
@@ -1216,7 +1216,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 37
       },
       "panels": []
     },
@@ -1232,7 +1232,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 38
       },
       "fieldConfig": {
         "defaults": {

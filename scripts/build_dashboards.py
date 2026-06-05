@@ -178,78 +178,78 @@ def build_system_overview():
     _id = 0
     p = []
     ACC = "shopai_chat_requests_total"   # チャット/音声の応答数 = アクセス数
-    # ── アクセス数 (累計は常時表示=必ず見える) ───────────────────────────────
+    # ── アクセス数 (大きく・全幅グラフ) ─────────────────────────────────────
     p.append(row("\U0001F4C8 アクセス数 (チャット/音声)", 0))
     p.append(timeseries("アクセス数 推移 (件/分)",
-                        [prom_target(f"sum(rate({ACC}[5m])) * 60", "アクセス/分", "A"),
+                        [prom_target(f"sum(rate({ACC}[5m])) * 60", "アクセス/分 (合計)", "A"),
                          prom_target(f"sum by (route) (rate({ACC}[5m])) * 60", "{{route}}", "B")],
-                        0, 1, gw=24, gh=4, unit="short", decimals=1, legend_table=True))
+                        0, 1, gw=24, gh=8, unit="short", decimals=1, legend_table=True))
 
     # ── 稼働状況 (UP/DOWN) ──────────────────────────────────────────────────
-    p.append(row("\U0001F7E2 稼働状況", 5))
-    p.append(stat("Backend API", [prom_target('up{job="shopai-backend"}')], 0, 6,
+    p.append(row("\U0001F7E2 稼働状況", 9))
+    p.append(stat("Backend API", [prom_target('up{job="shopai-backend"}')], 0, 10,
                   mappings=UP_MAP, steps=UP_STEPS))
-    p.append(stat("PostgreSQL", [prom_target("pg_up")], 4, 6, mappings=UP_MAP, steps=UP_STEPS))
-    p.append(stat("Fast LLM (vLLM)", [prom_target('up{job="shopai-vllm"}')], 8, 6,
+    p.append(stat("PostgreSQL", [prom_target("pg_up")], 4, 10, mappings=UP_MAP, steps=UP_STEPS))
+    p.append(stat("Fast LLM (vLLM)", [prom_target('up{job="shopai-vllm"}')], 8, 10,
                   mappings=UP_MAP, steps=UP_STEPS))
-    p.append(stat("GPU exporter", [prom_target('up{job="shopai-gpu"}')], 12, 6,
+    p.append(stat("GPU exporter", [prom_target('up{job="shopai-gpu"}')], 12, 10,
                   mappings=UP_MAP, steps=UP_STEPS))
-    p.append(stat("TTS", [prom_target('shopai_ready_component{component="tts_gateway"}')], 16, 6,
+    p.append(stat("TTS", [prom_target('shopai_ready_component{component="tts_gateway"}')], 16, 10,
                   mappings=UP_MAP, steps=UP_STEPS))
-    p.append(stat("Database", [prom_target('shopai_ready_component{component="database"}')], 20, 6,
+    p.append(stat("Database", [prom_target('shopai_ready_component{component="database"}')], 20, 10,
                   mappings=UP_MAP, steps=UP_STEPS))
 
     # ── 稼働モデル / レイテンシ (p95) ───────────────────────────────────────
-    p.append(row("\U0001F916 稼働モデル / 応答速度 (p95)", 10))
+    p.append(row("\U0001F916 稼働モデル / 応答速度 (p95)", 14))
     p.append(table("稼働中モデル", [prom_target("shopai_model_info", instant=True)],
-                   0, 11, gw=12, gh=4, ds=PROM))
+                   0, 15, gw=12, gh=4, ds=PROM))
     lat3 = [{"color": "green", "value": None}, {"color": "yellow", "value": 0.5}, {"color": "red", "value": 1.0}]
     p.append(stat("API p95", [prom_target(
         "histogram_quantile(0.95, sum by (le) (rate(shopai_http_request_duration_seconds_bucket[5m])))")],
-        12, 11, gw=4, unit="s", color_mode="value", decimals=2, steps=lat3,
+        12, 15, gw=4, unit="s", color_mode="value", decimals=2, steps=lat3,
         desc="HTTP リクエスト全体の95パーセンタイル応答時間 (直近5分)"))
     p.append(stat("LLM p95", [prom_target(
         "histogram_quantile(0.95, sum by (le) (rate(shopai_llm_dispatch_latency_seconds_bucket[5m])))")],
-        16, 11, gw=4, unit="s", color_mode="value", decimals=2, steps=lat3))
+        16, 15, gw=4, unit="s", color_mode="value", decimals=2, steps=lat3))
     p.append(stat("RAG p95", [prom_target(
         "histogram_quantile(0.95, sum by (le) (rate(shopai_rag_retrieval_duration_seconds_bucket[5m])))")],
-        20, 11, gw=4, unit="s", color_mode="value", decimals=2,
+        20, 15, gw=4, unit="s", color_mode="value", decimals=2,
         steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.3}]))
 
     # ── トラフィック / レイテンシ推移 ───────────────────────────────────────
-    p.append(row("\U0001F4CA トラフィック / 応答速度の推移", 15))
+    p.append(row("\U0001F4CA トラフィック / 応答速度の推移", 19))
     p.append(timeseries("ルート別リクエスト (req/s)",
                         [prom_target("sum by (route) (rate(shopai_chat_requests_total[5m]))", "{{route}}")],
-                        0, 16, gw=12, unit="reqps", decimals=2, legend_table=True))
+                        0, 20, gw=12, unit="reqps", decimals=2, legend_table=True))
     p.append(timeseries("ルート別 応答 p95",
                         [prom_target(
                             "histogram_quantile(0.95, sum by (le, route) (rate(shopai_chat_duration_seconds_bucket[5m])))",
                             "{{route}}")],
-                        12, 16, gw=12, unit="s", decimals=2, legend_table=True))
+                        12, 20, gw=12, unit="s", decimals=2, legend_table=True))
 
     # ── 異常 / フォールバック ───────────────────────────────────────────────
-    p.append(row("\u26A0\uFE0F 異常 / フォールバック", 24))
+    p.append(row("\u26A0\uFE0F 異常 / フォールバック", 28))
     p.append(stat("安全フォールバック率",
                   [prom_target("(sum(rate(shopai_chat_fallback_total[5m])) or vector(0)) / clamp_min(sum(rate(shopai_chat_requests_total[5m])), 1)")],
-                  0, 25, gw=6, gh=8, unit="percentunit", color_mode="value", decimals=1,
+                  0, 29, gw=6, gh=8, unit="percentunit", color_mode="value", decimals=1,
                   steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 0.05}, {"color": "red", "value": 0.1}],
                   desc="回答できずフォールバックした割合。高いほど RAG/モデルが答えられていない"))
     p.append(stat("認証拒否 (1h)",
                   [prom_target("sum(increase(shopai_auth_denials_total[1h])) or vector(0)")],
-                  6, 25, gw=6, gh=8, color_mode="value", decimals=0,
+                  6, 29, gw=6, gh=8, color_mode="value", decimals=0,
                   steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 10}, {"color": "red", "value": 50}]))
     p.append(timeseries("エラー / フォールバック (rate)",
                         [prom_target('sum(rate(shopai_llm_dispatch_total{outcome="error"}[5m])) or vector(0)', "LLMエラー", "A"),
                          prom_target("sum(rate(shopai_chat_fallback_total[5m])) or vector(0)", "安全フォールバック", "B"),
                          prom_target("sum(rate(shopai_auth_denials_total[5m])) or vector(0)", "認証拒否", "C")],
-                        12, 25, gw=12, gh=8, unit="short", decimals=2, legend_table=True))
+                        12, 29, gw=12, gh=8, unit="short", decimals=2, legend_table=True))
 
     # ── 直近フォールバック (SQL) ────────────────────────────────────────────
-    p.append(row("\U0001F4DD 直近の安全フォールバック (PostgreSQL)", 33))
+    p.append(row("\U0001F4DD 直近の安全フォールバック (PostgreSQL)", 37))
     p.append(table("直近フォールバック 20件", [pg_target(
         "SELECT created_at AS time, location_id, route, answer_source, model_used, handoff_reason "
         "FROM question_logs WHERE answer_source = 'safe_fallback' "
-        "ORDER BY created_at DESC LIMIT 20;")], 0, 34, gw=24, gh=8))
+        "ORDER BY created_at DESC LIMIT 20;")], 0, 38, gw=24, gh=8))
 
     return dashboard("shopai-system-overview", "ShopAI システム概要", p,
                      ["shopai", "overview"])
