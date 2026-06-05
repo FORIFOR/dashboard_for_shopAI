@@ -180,13 +180,10 @@ def build_system_overview():
     ACC = "shopai_chat_requests_total"   # チャット/音声の応答数 = アクセス数
     # ── アクセス数 (累計は常時表示=必ず見える) ───────────────────────────────
     p.append(row("\U0001F4C8 アクセス数 (チャット/音声)", 0))
-    p.append(stat("総アクセス数 (累計)", [prom_target(f"sum({ACC})")],
-                  0, 1, gw=8, gh=4, color_mode="value", decimals=0,
-                  desc="起動以降の累計応答数。backend 再起動でリセット"))
-    p.append(stat("アクセス数 (24h)", [prom_target(f"sum(increase({ACC}[24h])) or vector(0)")],
-                  8, 1, gw=8, gh=4, color_mode="value", decimals=0))
-    p.append(stat("アクセス数 (1h)", [prom_target(f"sum(increase({ACC}[1h])) or vector(0)")],
-                  16, 1, gw=8, gh=4, color_mode="value", decimals=0))
+    p.append(timeseries("アクセス数 推移 (件/分)",
+                        [prom_target(f"sum(rate({ACC}[5m])) * 60", "アクセス/分", "A"),
+                         prom_target(f"sum by (route) (rate({ACC}[5m])) * 60", "{{route}}", "B")],
+                        0, 1, gw=24, gh=4, unit="short", decimals=1, legend_table=True))
 
     # ── 稼働状況 (UP/DOWN) ──────────────────────────────────────────────────
     p.append(row("\U0001F7E2 稼働状況", 5))
@@ -484,10 +481,10 @@ def build_service_health():
                   [prom_target('count(ALERTS{alertstate="firing"}) or vector(0)')],
                   16, 1, gw=4, gh=4, color_mode="value",
                   steps=[{"color": "green", "value": None}, {"color": "red", "value": 1}]))
-    p.append(stat("総アクセス数 (累計)",
-                  [prom_target("sum(shopai_chat_requests_total) or vector(0)")],
-                  20, 1, gw=4, gh=4, color_mode="value", decimals=0,
-                  desc="チャット/音声の累計応答数 (アクセス数)"))
+    p.append(timeseries("アクセス数 推移 (件/分)",
+                        [prom_target("sum(rate(shopai_chat_requests_total[5m])) * 60", "件/分")],
+                        20, 1, gw=4, gh=4, unit="short", decimals=1,
+                        desc="チャット/音声アクセスの推移 (件/分)"))
 
     # ── per-service liveness grid (green=UP / red=DOWN) ─────────────────────
     p.append(row("サービス別 死活 (UP / DOWN)", 5))

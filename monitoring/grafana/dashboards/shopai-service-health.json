@@ -236,9 +236,9 @@
     },
     {
       "id": 5,
-      "type": "stat",
-      "title": "\u7dcf\u30a2\u30af\u30bb\u30b9\u6570 (\u7d2f\u8a08)",
-      "description": "\u30c1\u30e3\u30c3\u30c8/\u97f3\u58f0\u306e\u7d2f\u8a08\u5fdc\u7b54\u6570 (\u30a2\u30af\u30bb\u30b9\u6570)",
+      "type": "timeseries",
+      "title": "\u30a2\u30af\u30bb\u30b9\u6570 \u63a8\u79fb (\u4ef6/\u5206)",
+      "description": "\u30c1\u30e3\u30c3\u30c8/\u97f3\u58f0\u30a2\u30af\u30bb\u30b9\u306e\u63a8\u79fb (\u4ef6/\u5206)",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -251,10 +251,17 @@
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": true
           },
-          "mappings": [],
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -264,31 +271,30 @@
               }
             ]
           },
-          "decimals": 0
+          "decimals": 1
         },
         "overrides": []
       },
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "textMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(shopai_chat_requests_total) or vector(0)",
+          "expr": "sum(rate(shopai_chat_requests_total[5m])) * 60",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
-          }
+          },
+          "legendFormat": "\u4ef6/\u5206"
         }
       ]
     },
