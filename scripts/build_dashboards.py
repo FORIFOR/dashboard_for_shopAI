@@ -179,11 +179,14 @@ def build_system_overview():
     p = []
     ACC = "shopai_chat_requests_total"   # チャット/音声の応答数 = アクセス数
     # ── アクセス数 (大きく・全幅グラフ) ─────────────────────────────────────
-    p.append(row("\U0001F4C8 アクセス数 (チャット/音声)", 0))
-    p.append(timeseries("アクセス数 推移 (件/分)",
-                        [prom_target(f"sum(rate({ACC}[5m])) * 60", "アクセス/分 (合計)", "A"),
-                         prom_target(f"sum by (route) (rate({ACC}[5m])) * 60", "{{route}}", "B")],
-                        0, 1, gw=24, gh=8, unit="short", decimals=1, legend_table=True))
+    p.append(row("\U0001F4C8 コンポーネント別 アクセス数 (件/分)", 0))
+    p.append(timeseries("アクセス数 推移 — バックエンド / vLLM / llama.cpp / TTS (件/分)",
+                        [prom_target('sum(rate(shopai_http_requests_total{path!~"/health|/metrics"}[5m])) * 60', "バックエンド (API)", "A"),
+                         prom_target('sum(rate(shopai_llm_dispatch_total{node="fast_primary"}[5m])) * 60', "vLLM (fast)", "B"),
+                         prom_target('sum(rate(shopai_llm_dispatch_total{node="smart_primary"}[5m])) * 60', "llama.cpp (smart)", "C"),
+                         prom_target('sum(rate(shopai_tts_first_audio_latency_seconds_count[5m])) * 60', "TTS", "D")],
+                        0, 1, gw=24, gh=8, unit="short", decimals=1, legend_table=True,
+                        desc="各コンポーネントへのアクセス数(件/分)。アクセスされると線が立ち上がる"))
 
     # ── 稼働状況 (UP/DOWN) ──────────────────────────────────────────────────
     p.append(row("\U0001F7E2 稼働状況", 9))

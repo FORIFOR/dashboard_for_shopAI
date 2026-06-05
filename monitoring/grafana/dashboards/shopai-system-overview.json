@@ -24,7 +24,7 @@
     {
       "id": 1,
       "type": "row",
-      "title": "\ud83d\udcc8 \u30a2\u30af\u30bb\u30b9\u6570 (\u30c1\u30e3\u30c3\u30c8/\u97f3\u58f0)",
+      "title": "\ud83d\udcc8 \u30b3\u30f3\u30dd\u30fc\u30cd\u30f3\u30c8\u5225 \u30a2\u30af\u30bb\u30b9\u6570 (\u4ef6/\u5206)",
       "collapsed": false,
       "gridPos": {
         "h": 1,
@@ -37,8 +37,8 @@
     {
       "id": 2,
       "type": "timeseries",
-      "title": "\u30a2\u30af\u30bb\u30b9\u6570 \u63a8\u79fb (\u4ef6/\u5206)",
-      "description": "",
+      "title": "\u30a2\u30af\u30bb\u30b9\u6570 \u63a8\u79fb \u2014 \u30d0\u30c3\u30af\u30a8\u30f3\u30c9 / vLLM / llama.cpp / TTS (\u4ef6/\u5206)",
+      "description": "\u5404\u30b3\u30f3\u30dd\u30fc\u30cd\u30f3\u30c8\u3078\u306e\u30a2\u30af\u30bb\u30b9\u6570(\u4ef6/\u5206)\u3002\u30a2\u30af\u30bb\u30b9\u3055\u308c\u308b\u3068\u7dda\u304c\u7acb\u3061\u4e0a\u304c\u308b",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -91,21 +91,39 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(shopai_chat_requests_total[5m])) * 60",
+          "expr": "sum(rate(shopai_http_requests_total{path!~\"/health|/metrics\"}[5m])) * 60",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "\u30a2\u30af\u30bb\u30b9/\u5206 (\u5408\u8a08)"
+          "legendFormat": "\u30d0\u30c3\u30af\u30a8\u30f3\u30c9 (API)"
         },
         {
           "refId": "B",
-          "expr": "sum by (route) (rate(shopai_chat_requests_total[5m])) * 60",
+          "expr": "sum(rate(shopai_llm_dispatch_total{node=\"fast_primary\"}[5m])) * 60",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "{{route}}"
+          "legendFormat": "vLLM (fast)"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(rate(shopai_llm_dispatch_total{node=\"smart_primary\"}[5m])) * 60",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "llama.cpp (smart)"
+        },
+        {
+          "refId": "D",
+          "expr": "sum(rate(shopai_tts_first_audio_latency_seconds_count[5m])) * 60",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "TTS"
         }
       ]
     },
