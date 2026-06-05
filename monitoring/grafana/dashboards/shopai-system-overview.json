@@ -24,7 +24,7 @@
     {
       "id": 1,
       "type": "row",
-      "title": "\ud83d\udfe2 \u7a3c\u50cd\u72b6\u6cc1",
+      "title": "\ud83d\udcc8 \u30a2\u30af\u30bb\u30b9\u6570 (\u30c1\u30e3\u30c3\u30c8/\u97f3\u58f0)",
       "collapsed": false,
       "gridPos": {
         "h": 1,
@@ -37,6 +37,193 @@
     {
       "id": 2,
       "type": "stat",
+      "title": "\u7dcf\u30a2\u30af\u30bb\u30b9\u6570 (\u7d2f\u8a08)",
+      "description": "\u8d77\u52d5\u4ee5\u964d\u306e\u7d2f\u8a08\u5fdc\u7b54\u6570\u3002backend \u518d\u8d77\u52d5\u3067\u30ea\u30bb\u30c3\u30c8",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(shopai_chat_requests_total)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "\u30a2\u30af\u30bb\u30b9\u6570 (24h)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(shopai_chat_requests_total[24h])) or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "\u30a2\u30af\u30bb\u30b9\u6570 (1h)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(shopai_chat_requests_total[1h])) or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "title": "\ud83d\udfe2 \u7a3c\u50cd\u72b6\u6cc1",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "panels": []
+    },
+    {
+      "id": 6,
+      "type": "stat",
       "title": "Backend API",
       "description": "",
       "datasource": {
@@ -47,7 +234,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 6
       },
       "fieldConfig": {
         "defaults": {
@@ -112,7 +299,7 @@
       ]
     },
     {
-      "id": 3,
+      "id": 7,
       "type": "stat",
       "title": "PostgreSQL",
       "description": "",
@@ -124,7 +311,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 1
+        "y": 6
       },
       "fieldConfig": {
         "defaults": {
@@ -189,7 +376,7 @@
       ]
     },
     {
-      "id": 4,
+      "id": 8,
       "type": "stat",
       "title": "Fast LLM (vLLM)",
       "description": "",
@@ -201,7 +388,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 1
+        "y": 6
       },
       "fieldConfig": {
         "defaults": {
@@ -266,7 +453,7 @@
       ]
     },
     {
-      "id": 5,
+      "id": 9,
       "type": "stat",
       "title": "GPU exporter",
       "description": "",
@@ -278,7 +465,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 1
+        "y": 6
       },
       "fieldConfig": {
         "defaults": {
@@ -343,7 +530,7 @@
       ]
     },
     {
-      "id": 6,
+      "id": 10,
       "type": "stat",
       "title": "TTS",
       "description": "",
@@ -355,7 +542,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 1
+        "y": 6
       },
       "fieldConfig": {
         "defaults": {
@@ -420,7 +607,7 @@
       ]
     },
     {
-      "id": 7,
+      "id": 11,
       "type": "stat",
       "title": "Database",
       "description": "",
@@ -432,7 +619,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 1
+        "y": 6
       },
       "fieldConfig": {
         "defaults": {
@@ -497,7 +684,7 @@
       ]
     },
     {
-      "id": 8,
+      "id": 12,
       "type": "row",
       "title": "\ud83e\udd16 \u7a3c\u50cd\u30e2\u30c7\u30eb / \u5fdc\u7b54\u901f\u5ea6 (p95)",
       "collapsed": false,
@@ -505,12 +692,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 10
       },
       "panels": []
     },
     {
-      "id": 9,
+      "id": 13,
       "type": "table",
       "title": "\u7a3c\u50cd\u4e2d\u30e2\u30c7\u30eb",
       "datasource": {
@@ -521,7 +708,7 @@
         "h": 4,
         "w": 12,
         "x": 0,
-        "y": 6
+        "y": 11
       },
       "fieldConfig": {
         "defaults": {
@@ -548,7 +735,7 @@
       ]
     },
     {
-      "id": 10,
+      "id": 14,
       "type": "stat",
       "title": "API p95",
       "description": "HTTP \u30ea\u30af\u30a8\u30b9\u30c8\u5168\u4f53\u306e95\u30d1\u30fc\u30bb\u30f3\u30bf\u30a4\u30eb\u5fdc\u7b54\u6642\u9593 (\u76f4\u8fd15\u5206)",
@@ -560,7 +747,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 6
+        "y": 11
       },
       "fieldConfig": {
         "defaults": {
@@ -615,7 +802,7 @@
       ]
     },
     {
-      "id": 11,
+      "id": 15,
       "type": "stat",
       "title": "LLM p95",
       "description": "",
@@ -627,7 +814,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 6
+        "y": 11
       },
       "fieldConfig": {
         "defaults": {
@@ -682,7 +869,7 @@
       ]
     },
     {
-      "id": 12,
+      "id": 16,
       "type": "stat",
       "title": "RAG p95",
       "description": "",
@@ -694,7 +881,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 6
+        "y": 11
       },
       "fieldConfig": {
         "defaults": {
@@ -745,7 +932,7 @@
       ]
     },
     {
-      "id": 13,
+      "id": 17,
       "type": "row",
       "title": "\ud83d\udcca \u30c8\u30e9\u30d5\u30a3\u30c3\u30af / \u5fdc\u7b54\u901f\u5ea6\u306e\u63a8\u79fb",
       "collapsed": false,
@@ -753,12 +940,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 15
       },
       "panels": []
     },
     {
-      "id": 14,
+      "id": 18,
       "type": "timeseries",
       "title": "\u30eb\u30fc\u30c8\u5225\u30ea\u30af\u30a8\u30b9\u30c8 (req/s)",
       "description": "",
@@ -770,7 +957,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 11
+        "y": 16
       },
       "fieldConfig": {
         "defaults": {
@@ -824,7 +1011,7 @@
       ]
     },
     {
-      "id": 15,
+      "id": 19,
       "type": "timeseries",
       "title": "\u30eb\u30fc\u30c8\u5225 \u5fdc\u7b54 p95",
       "description": "",
@@ -836,7 +1023,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 11
+        "y": 16
       },
       "fieldConfig": {
         "defaults": {
@@ -890,7 +1077,7 @@
       ]
     },
     {
-      "id": 16,
+      "id": 20,
       "type": "row",
       "title": "\u26a0\ufe0f \u7570\u5e38 / \u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af",
       "collapsed": false,
@@ -898,12 +1085,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 24
       },
       "panels": []
     },
     {
-      "id": 17,
+      "id": 21,
       "type": "stat",
       "title": "\u5b89\u5168\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af\u7387",
       "description": "\u56de\u7b54\u3067\u304d\u305a\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af\u3057\u305f\u5272\u5408\u3002\u9ad8\u3044\u307b\u3069 RAG/\u30e2\u30c7\u30eb\u304c\u7b54\u3048\u3089\u308c\u3066\u3044\u306a\u3044",
@@ -915,7 +1102,7 @@
         "h": 8,
         "w": 6,
         "x": 0,
-        "y": 20
+        "y": 25
       },
       "fieldConfig": {
         "defaults": {
@@ -970,7 +1157,7 @@
       ]
     },
     {
-      "id": 18,
+      "id": 22,
       "type": "stat",
       "title": "\u8a8d\u8a3c\u62d2\u5426 (1h)",
       "description": "",
@@ -982,7 +1169,7 @@
         "h": 8,
         "w": 6,
         "x": 6,
-        "y": 20
+        "y": 25
       },
       "fieldConfig": {
         "defaults": {
@@ -1036,7 +1223,7 @@
       ]
     },
     {
-      "id": 19,
+      "id": 23,
       "type": "timeseries",
       "title": "\u30a8\u30e9\u30fc / \u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af (rate)",
       "description": "",
@@ -1048,7 +1235,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 20
+        "y": 25
       },
       "fieldConfig": {
         "defaults": {
@@ -1120,7 +1307,7 @@
       ]
     },
     {
-      "id": 20,
+      "id": 24,
       "type": "row",
       "title": "\ud83d\udcdd \u76f4\u8fd1\u306e\u5b89\u5168\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af (PostgreSQL)",
       "collapsed": false,
@@ -1128,12 +1315,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 33
       },
       "panels": []
     },
     {
-      "id": 21,
+      "id": 25,
       "type": "table",
       "title": "\u76f4\u8fd1\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af 20\u4ef6",
       "datasource": {
@@ -1144,7 +1331,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 34
       },
       "fieldConfig": {
         "defaults": {
