@@ -402,7 +402,7 @@
     {
       "id": 8,
       "type": "row",
-      "title": "\ud83d\udea6 vLLM \u30b9\u30b1\u30b8\u30e5\u30fc\u30e9 / \u30ad\u30e3\u30c3\u30b7\u30e5",
+      "title": "\ud83e\udd16 LLM \u5229\u7528\u72b6\u6cc1 (vLLM / llama.cpp \u2014 backend\u8996\u70b9)",
       "collapsed": false,
       "gridPos": {
         "h": 1,
@@ -415,6 +415,499 @@
     {
       "id": 9,
       "type": "stat",
+      "title": "LLM \u547c\u3073\u51fa\u3057 (1h)",
+      "description": "backend \u304c LLM \u3092\u547c\u3093\u3060\u56de\u6570 (vLLM+llama.cpp \u5408\u8a08)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(shopai_llm_dispatch_total[1h])) or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "\u6210\u529f\u7387",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.9
+              },
+              {
+                "color": "green",
+                "value": 0.99
+              }
+            ]
+          },
+          "unit": "percentunit",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum(increase(shopai_llm_dispatch_total{outcome=\"ok\"}[1h])) or vector(0)) / clamp_min(sum(increase(shopai_llm_dispatch_total[1h])), 1)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "\u30a8\u30e9\u30fc (1h)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(shopai_llm_dispatch_total{outcome=\"error\"}[1h])) or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "\u63a8\u8ad6\u30b5\u30cb\u30bf\u30a4\u30ba (1h)",
+      "description": "\u601d\u8003\u904e\u7a0b\u306e\u6f0f\u308c\u3092\u9664\u53bb\u3057\u305f\u56de\u6570\u30020 \u304c\u7406\u60f3",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(shopai_reasoning_sanitized_total[1h])) or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "\u30ce\u30fc\u30c9\u5225 LLM \u547c\u3073\u51fa\u3057 (\u4ef6/\u5206)",
+      "description": "\u5404 LLM \u30ce\u30fc\u30c9\u3078\u306e\u547c\u3073\u51fa\u3057\u6570\u3002\u52d5\u3044\u3066\u3044\u308b LLM \u306e\u7dda\u304c\u7acb\u3064",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(shopai_llm_dispatch_total{node=\"fast_primary\"}[5m])) * 60",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "vLLM (fast)"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(shopai_llm_dispatch_total{node=\"smart_primary\"}[5m])) * 60",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "llama.cpp (smart)"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "\u30ce\u30fc\u30c9\u5225 \u5fdc\u7b54\u30ec\u30a4\u30c6\u30f3\u30b7 p95",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_llm_dispatch_latency_seconds_bucket{node=\"fast_primary\"}[5m])))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "vLLM (fast)"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(shopai_llm_dispatch_latency_seconds_bucket{node=\"smart_primary\"}[5m])))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "llama.cpp (smart)"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "row",
+      "title": "\ud83d\udea6 vLLM \u5c02\u7528\u30e1\u30c8\u30ea\u30af\u30b9 (vLLM\u7a3c\u50cd\u6642\u306e\u307f)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "panels": []
+    },
+    {
+      "id": 16,
+      "type": "stat",
+      "title": "vLLM \u7a3c\u50cd\u72b6\u614b",
+      "description": "DOWN=vLLM\u505c\u6b62\u4e2d\u3002\u4ee5\u4e0b\u306e vllm:* \u30d1\u30cd\u30eb\u304c No data \u306a\u306e\u306f\u3053\u306e\u305f\u3081 (\u505c\u6b62\u4e2d\u306f\u6b63\u5e38)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=\"shopai-vllm\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "type": "stat",
       "title": "\u51e6\u7406\u4e2d\u30ea\u30af\u30a8\u30b9\u30c8",
       "description": "",
       "datasource": {
@@ -425,7 +918,7 @@
         "h": 6,
         "w": 6,
         "x": 0,
-        "y": 8
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -471,10 +964,10 @@
       ]
     },
     {
-      "id": 10,
+      "id": 18,
       "type": "stat",
       "title": "\u5f85\u6a5f\u4e2d\u30ea\u30af\u30a8\u30b9\u30c8",
-      "description": "\u5f85\u3061\u884c\u5217\u3002\u5e38\u6642 0 \u304c\u7406\u60f3\u3002\u5897\u3048\u7d9a\u3051\u308b\u306a\u3089 GPU \u304c\u8ffd\u3044\u3064\u3044\u3066\u3044\u306a\u3044",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -483,7 +976,7 @@
         "h": 6,
         "w": 6,
         "x": 6,
-        "y": 8
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -537,7 +1030,7 @@
       ]
     },
     {
-      "id": 11,
+      "id": 19,
       "type": "gauge",
       "title": "KV \u30ad\u30e3\u30c3\u30b7\u30e5\u4f7f\u7528\u7387",
       "description": "",
@@ -549,7 +1042,7 @@
         "h": 6,
         "w": 6,
         "x": 12,
-        "y": 8
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -597,7 +1090,7 @@
       ]
     },
     {
-      "id": 12,
+      "id": 20,
       "type": "stat",
       "title": "Prefix \u30ad\u30e3\u30c3\u30b7\u30e5\u547d\u4e2d\u7387",
       "description": "",
@@ -609,7 +1102,7 @@
         "h": 6,
         "w": 6,
         "x": 18,
-        "y": 8
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -656,20 +1149,20 @@
       ]
     },
     {
-      "id": 13,
+      "id": 21,
       "type": "row",
-      "title": "\u23f1\ufe0f \u63a8\u8ad6\u30ec\u30a4\u30c6\u30f3\u30b7",
+      "title": "\u23f1\ufe0f vLLM \u30ec\u30a4\u30c6\u30f3\u30b7 (vLLM\u7a3c\u50cd\u6642\u306e\u307f)",
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 30
       },
       "panels": []
     },
     {
-      "id": 14,
+      "id": 22,
       "type": "timeseries",
       "title": "\u521d\u56de\u30c8\u30fc\u30af\u30f3\u307e\u3067 TTFT (p50 / p95)",
       "description": "",
@@ -681,7 +1174,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 15
+        "y": 31
       },
       "fieldConfig": {
         "defaults": {
@@ -744,7 +1237,7 @@
       ]
     },
     {
-      "id": 15,
+      "id": 23,
       "type": "timeseries",
       "title": "\u30ea\u30af\u30a8\u30b9\u30c8\u5168\u4f53 E2E (p50 / p95)",
       "description": "",
@@ -756,7 +1249,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 15
+        "y": 31
       },
       "fieldConfig": {
         "defaults": {
@@ -819,20 +1312,20 @@
       ]
     },
     {
-      "id": 16,
+      "id": 24,
       "type": "row",
-      "title": "\ud83d\udcc8 \u30b9\u30eb\u30fc\u30d7\u30c3\u30c8",
+      "title": "\ud83d\udcc8 vLLM \u30b9\u30eb\u30fc\u30d7\u30c3\u30c8 (vLLM\u7a3c\u50cd\u6642\u306e\u307f)",
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 39
       },
       "panels": []
     },
     {
-      "id": 17,
+      "id": 25,
       "type": "timeseries",
       "title": "\u30c8\u30fc\u30af\u30f3\u9593\u30ec\u30a4\u30c6\u30f3\u30b7 TPOT (p95)",
       "description": "",
@@ -844,7 +1337,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 24
+        "y": 40
       },
       "fieldConfig": {
         "defaults": {
@@ -898,7 +1391,7 @@
       ]
     },
     {
-      "id": 18,
+      "id": 26,
       "type": "timeseries",
       "title": "\u751f\u6210\u30c8\u30fc\u30af\u30f3 \u30b9\u30eb\u30fc\u30d7\u30c3\u30c8 (tok/s)",
       "description": "",
@@ -910,7 +1403,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 24
+        "y": 40
       },
       "fieldConfig": {
         "defaults": {
@@ -960,147 +1453,6 @@
             "uid": "shopai-prometheus"
           },
           "legendFormat": "tokens/s"
-        }
-      ]
-    },
-    {
-      "id": 19,
-      "type": "row",
-      "title": "\ud83e\uddf9 \u30d0\u30c3\u30af\u30a8\u30f3\u30c9\u9023\u643a",
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 32
-      },
-      "panels": []
-    },
-    {
-      "id": 20,
-      "type": "stat",
-      "title": "\u63a8\u8ad6\u30b5\u30cb\u30bf\u30a4\u30ba (1h)",
-      "description": "\u601d\u8003\u904e\u7a0b\u306e\u6f0f\u308c\u3092\u9664\u53bb\u3057\u305f\u56de\u6570\u30020 \u304c\u7406\u60f3",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "shopai-prometheus"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 33
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
-          "decimals": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "textMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(increase(shopai_reasoning_sanitized_total[1h])) or vector(0)",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "shopai-prometheus"
-          }
-        }
-      ]
-    },
-    {
-      "id": 21,
-      "type": "timeseries",
-      "title": "LLM \u30c7\u30a3\u30b9\u30d1\u30c3\u30c1\u7d50\u679c (backend \u8996\u70b9)",
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "shopai-prometheus"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 18,
-        "x": 6,
-        "y": 33
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "lineWidth": 1,
-            "showPoints": "never",
-            "spanNulls": true
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "unit": "short",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "decimals": 2
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom",
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (route, outcome) (rate(shopai_llm_dispatch_total[5m]))",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "shopai-prometheus"
-          },
-          "legendFormat": "{{route}} {{outcome}}"
         }
       ]
     }
