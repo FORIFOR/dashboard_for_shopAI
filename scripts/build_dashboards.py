@@ -181,10 +181,11 @@ def build_system_overview():
     # ── アクセス数 (大きく・全幅グラフ) ─────────────────────────────────────
     p.append(row("\U0001F4C8 コンポーネント別 アクセス数 (件/分)", 0))
     p.append(timeseries("アクセス数 推移 — バックエンド / vLLM / llama.cpp / TTS (件/分)",
-                        [prom_target('sum(rate(shopai_http_requests_total{path!~"/health|/metrics"}[5m])) * 60', "バックエンド (API)", "A"),
-                         prom_target('sum(rate(shopai_llm_dispatch_total{node="fast_primary"}[5m])) * 60', "vLLM (fast)", "B"),
-                         prom_target('sum(rate(shopai_llm_dispatch_total{node="smart_primary"}[5m])) * 60', "llama.cpp (smart)", "C"),
-                         prom_target('sum(rate(shopai_tts_first_audio_latency_seconds_count[5m])) * 60', "TTS", "D")],
+                        [prom_target('sum(rate(shopai_http_requests_total{path!~"/health|/metrics"}[5m])) * 60 or vector(0)', "バックエンド (API)", "A"),
+                         prom_target('sum(rate(shopai_llm_dispatch_total{node="fast_primary"}[5m])) * 60 or vector(0)', "vLLM (fast)", "B"),
+                         prom_target('sum(rate(shopai_llm_dispatch_total{node="smart_primary"}[5m])) * 60 or vector(0)', "llama.cpp (smart)", "C"),
+                         prom_target('sum(rate(shopai_tts_first_audio_latency_seconds_count{provider="aivisspeech_local_gpu"}[5m])) * 60 or vector(0)', "TTS: AivisSpeech", "D"),
+                         prom_target('sum(rate(shopai_tts_first_audio_latency_seconds_count{provider="voicevox_local"}[5m])) * 60 or vector(0)', "TTS: VOICEVOX", "E")],
                         0, 1, gw=24, gh=8, unit="short", decimals=1, legend_table=True,
                         desc="各コンポーネントへのアクセス数(件/分)。アクセスされると線が立ち上がる"))
 

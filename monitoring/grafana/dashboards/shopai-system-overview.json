@@ -91,7 +91,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(shopai_http_requests_total{path!~\"/health|/metrics\"}[5m])) * 60",
+          "expr": "sum(rate(shopai_http_requests_total{path!~\"/health|/metrics\"}[5m])) * 60 or vector(0)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -100,7 +100,7 @@
         },
         {
           "refId": "B",
-          "expr": "sum(rate(shopai_llm_dispatch_total{node=\"fast_primary\"}[5m])) * 60",
+          "expr": "sum(rate(shopai_llm_dispatch_total{node=\"fast_primary\"}[5m])) * 60 or vector(0)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -109,7 +109,7 @@
         },
         {
           "refId": "C",
-          "expr": "sum(rate(shopai_llm_dispatch_total{node=\"smart_primary\"}[5m])) * 60",
+          "expr": "sum(rate(shopai_llm_dispatch_total{node=\"smart_primary\"}[5m])) * 60 or vector(0)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -118,12 +118,21 @@
         },
         {
           "refId": "D",
-          "expr": "sum(rate(shopai_tts_first_audio_latency_seconds_count[5m])) * 60",
+          "expr": "sum(rate(shopai_tts_first_audio_latency_seconds_count{provider=\"aivisspeech_local_gpu\"}[5m])) * 60 or vector(0)",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "TTS"
+          "legendFormat": "TTS: AivisSpeech"
+        },
+        {
+          "refId": "E",
+          "expr": "sum(rate(shopai_tts_first_audio_latency_seconds_count{provider=\"voicevox_local\"}[5m])) * 60 or vector(0)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "TTS: VOICEVOX"
         }
       ]
     },
