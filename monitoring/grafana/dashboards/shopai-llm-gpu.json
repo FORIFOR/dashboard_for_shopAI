@@ -401,6 +401,90 @@
     },
     {
       "id": 8,
+      "type": "timeseries",
+      "title": "GPU \u63a8\u79fb (\u4f7f\u7528\u7387% / VRAM% / \u96fb\u529bW) \u2014 \u52d5\u3044\u305f\u5c65\u6b74",
+      "description": "Last 24h/7d \u306b\u3059\u308b\u3068 GPU \u304c\u7a3c\u50cd\u3057\u305f\u5c71\u304c\u898b\u3048\u308b (30\u65e5\u4fdd\u6301)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "shopai_gpu_utilization_percent",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "GPU\u4f7f\u7528\u7387 %"
+        },
+        {
+          "refId": "B",
+          "expr": "100 * shopai_gpu_memory_used_mib / shopai_gpu_memory_total_mib",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "VRAM %"
+        },
+        {
+          "refId": "C",
+          "expr": "shopai_gpu_power_draw_watts",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "\u96fb\u529b W"
+        }
+      ]
+    },
+    {
+      "id": 9,
       "type": "row",
       "title": "\ud83e\udd16 LLM \u5229\u7528\u72b6\u6cc1 (vLLM / llama.cpp \u2014 backend\u8996\u70b9)",
       "collapsed": false,
@@ -408,12 +492,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 13
       },
       "panels": []
     },
     {
-      "id": 9,
+      "id": 10,
       "type": "stat",
       "title": "LLM \u547c\u3073\u51fa\u3057 (1h)",
       "description": "backend \u304c LLM \u3092\u547c\u3093\u3060\u56de\u6570 (vLLM+llama.cpp \u5408\u8a08)",
@@ -425,7 +509,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 8
+        "y": 14
       },
       "fieldConfig": {
         "defaults": {
@@ -471,7 +555,7 @@
       ]
     },
     {
-      "id": 10,
+      "id": 11,
       "type": "stat",
       "title": "\u6210\u529f\u7387",
       "description": "",
@@ -483,7 +567,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 8
+        "y": 14
       },
       "fieldConfig": {
         "defaults": {
@@ -538,7 +622,7 @@
       ]
     },
     {
-      "id": 11,
+      "id": 12,
       "type": "stat",
       "title": "\u30a8\u30e9\u30fc (1h)",
       "description": "",
@@ -550,7 +634,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 8
+        "y": 14
       },
       "fieldConfig": {
         "defaults": {
@@ -604,10 +688,10 @@
       ]
     },
     {
-      "id": 12,
+      "id": 13,
       "type": "stat",
       "title": "\u63a8\u8ad6\u30b5\u30cb\u30bf\u30a4\u30ba (1h)",
-      "description": "\u601d\u8003\u904e\u7a0b\u306e\u6f0f\u308c\u3092\u9664\u53bb\u3057\u305f\u56de\u6570\u30020 \u304c\u7406\u60f3",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -616,7 +700,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 8
+        "y": 14
       },
       "fieldConfig": {
         "defaults": {
@@ -666,7 +750,7 @@
       ]
     },
     {
-      "id": 13,
+      "id": 14,
       "type": "timeseries",
       "title": "\u30ce\u30fc\u30c9\u5225 LLM \u547c\u3073\u51fa\u3057 (\u4ef6/\u5206)",
       "description": "\u5404 LLM \u30ce\u30fc\u30c9\u3078\u306e\u547c\u3073\u51fa\u3057\u6570\u3002\u52d5\u3044\u3066\u3044\u308b LLM \u306e\u7dda\u304c\u7acb\u3064",
@@ -678,7 +762,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 12
+        "y": 18
       },
       "fieldConfig": {
         "defaults": {
@@ -741,7 +825,7 @@
       ]
     },
     {
-      "id": 14,
+      "id": 15,
       "type": "timeseries",
       "title": "\u30ce\u30fc\u30c9\u5225 \u5fdc\u7b54\u30ec\u30a4\u30c6\u30f3\u30b7 p95",
       "description": "",
@@ -753,7 +837,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 18
       },
       "fieldConfig": {
         "defaults": {
@@ -816,7 +900,7 @@
       ]
     },
     {
-      "id": 15,
+      "id": 16,
       "type": "row",
       "title": "\ud83d\udea6 vLLM \u5c02\u7528\u30e1\u30c8\u30ea\u30af\u30b9 (vLLM\u7a3c\u50cd\u6642\u306e\u307f)",
       "collapsed": false,
@@ -824,12 +908,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 26
       },
       "panels": []
     },
     {
-      "id": 16,
+      "id": 17,
       "type": "stat",
       "title": "vLLM \u7a3c\u50cd\u72b6\u614b",
       "description": "DOWN=vLLM\u505c\u6b62\u4e2d\u3002\u4ee5\u4e0b\u306e vllm:* \u30d1\u30cd\u30eb\u304c No data \u306a\u306e\u306f\u3053\u306e\u305f\u3081 (\u505c\u6b62\u4e2d\u306f\u6b63\u5e38)",
@@ -841,7 +925,7 @@
         "h": 3,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 27
       },
       "fieldConfig": {
         "defaults": {
@@ -906,7 +990,7 @@
       ]
     },
     {
-      "id": 17,
+      "id": 18,
       "type": "stat",
       "title": "\u51e6\u7406\u4e2d\u30ea\u30af\u30a8\u30b9\u30c8",
       "description": "",
@@ -918,7 +1002,7 @@
         "h": 6,
         "w": 6,
         "x": 0,
-        "y": 24
+        "y": 30
       },
       "fieldConfig": {
         "defaults": {
@@ -964,7 +1048,7 @@
       ]
     },
     {
-      "id": 18,
+      "id": 19,
       "type": "stat",
       "title": "\u5f85\u6a5f\u4e2d\u30ea\u30af\u30a8\u30b9\u30c8",
       "description": "",
@@ -976,7 +1060,7 @@
         "h": 6,
         "w": 6,
         "x": 6,
-        "y": 24
+        "y": 30
       },
       "fieldConfig": {
         "defaults": {
@@ -1030,7 +1114,7 @@
       ]
     },
     {
-      "id": 19,
+      "id": 20,
       "type": "gauge",
       "title": "KV \u30ad\u30e3\u30c3\u30b7\u30e5\u4f7f\u7528\u7387",
       "description": "",
@@ -1042,7 +1126,7 @@
         "h": 6,
         "w": 6,
         "x": 12,
-        "y": 24
+        "y": 30
       },
       "fieldConfig": {
         "defaults": {
@@ -1090,7 +1174,7 @@
       ]
     },
     {
-      "id": 20,
+      "id": 21,
       "type": "stat",
       "title": "Prefix \u30ad\u30e3\u30c3\u30b7\u30e5\u547d\u4e2d\u7387",
       "description": "",
@@ -1102,7 +1186,7 @@
         "h": 6,
         "w": 6,
         "x": 18,
-        "y": 24
+        "y": 30
       },
       "fieldConfig": {
         "defaults": {
@@ -1149,7 +1233,7 @@
       ]
     },
     {
-      "id": 21,
+      "id": 22,
       "type": "row",
       "title": "\u23f1\ufe0f vLLM \u30ec\u30a4\u30c6\u30f3\u30b7 (vLLM\u7a3c\u50cd\u6642\u306e\u307f)",
       "collapsed": false,
@@ -1157,12 +1241,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 36
       },
       "panels": []
     },
     {
-      "id": 22,
+      "id": 23,
       "type": "timeseries",
       "title": "\u521d\u56de\u30c8\u30fc\u30af\u30f3\u307e\u3067 TTFT (p50 / p95)",
       "description": "",
@@ -1174,7 +1258,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 31
+        "y": 37
       },
       "fieldConfig": {
         "defaults": {
@@ -1237,7 +1321,7 @@
       ]
     },
     {
-      "id": 23,
+      "id": 24,
       "type": "timeseries",
       "title": "\u30ea\u30af\u30a8\u30b9\u30c8\u5168\u4f53 E2E (p50 / p95)",
       "description": "",
@@ -1249,7 +1333,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 31
+        "y": 37
       },
       "fieldConfig": {
         "defaults": {
@@ -1312,7 +1396,7 @@
       ]
     },
     {
-      "id": 24,
+      "id": 25,
       "type": "row",
       "title": "\ud83d\udcc8 vLLM \u30b9\u30eb\u30fc\u30d7\u30c3\u30c8 (vLLM\u7a3c\u50cd\u6642\u306e\u307f)",
       "collapsed": false,
@@ -1320,12 +1404,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 45
       },
       "panels": []
     },
     {
-      "id": 25,
+      "id": 26,
       "type": "timeseries",
       "title": "\u30c8\u30fc\u30af\u30f3\u9593\u30ec\u30a4\u30c6\u30f3\u30b7 TPOT (p95)",
       "description": "",
@@ -1337,7 +1421,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 40
+        "y": 46
       },
       "fieldConfig": {
         "defaults": {
@@ -1391,7 +1475,7 @@
       ]
     },
     {
-      "id": 26,
+      "id": 27,
       "type": "timeseries",
       "title": "\u751f\u6210\u30c8\u30fc\u30af\u30f3 \u30b9\u30eb\u30fc\u30d7\u30c3\u30c8 (tok/s)",
       "description": "",
@@ -1403,7 +1487,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 40
+        "y": 46
       },
       "fieldConfig": {
         "defaults": {
