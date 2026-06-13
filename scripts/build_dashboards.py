@@ -265,7 +265,7 @@ def build_llm_gpu():
     p = []
     DISP = "shopai_llm_dispatch_total"
     DLAT = "shopai_llm_dispatch_latency_seconds_bucket"
-    # GPU 状態 (現在値)
+    NETF = '{device!~"lo|docker.*|veth.*|br.*|tailscale.*"}'
     p.append(row("🖥️ GPU 状態 (RTX 5070 Ti)", 0))
     p.append(gauge("GPU 使用率", [prom_target("shopai_gpu_utilization_percent")], 0, 1, gw=4, gh=6))
     p.append(gauge("VRAM 使用率",
@@ -287,63 +287,70 @@ def build_llm_gpu():
                          prom_target("shopai_gpu_power_draw_watts", "電力 W", "C")],
                         0, 7, gw=24, gh=6, unit="short", decimals=1, legend_table=True,
                         desc="Last 24h/7d にすると GPU が稼働した山が見える (30日保持)"))
-
-    # LLM 利用状況 (vLLM / llama.cpp 両対応)
-    p.append(row("🤖 LLM 利用状況 (vLLM / llama.cpp — backend視点)", 13))
+    p.append(row("💻 ホスト負荷 / 通信 / 消費電力 (GPU PC / Backend VM)", 13))
+    p.append(timeseries("CPU 使用率 推移 (%)",
+                        [prom_target('100 - avg by (host) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100', "{{host}}")],
+                        0, 14, gw=12, gh=8, unit="percent", decimals=1, legend_table=True))
+    p.append(timeseries("ネットワーク 送受信 (バイト/秒)",
+                        [prom_target("sum by (host) (rate(node_network_receive_bytes_total" + NETF + "[5m]))", "{{host}} 受信", "A"),
+                         prom_target("- sum by (host) (rate(node_network_transmit_bytes_total" + NETF + "[5m]))", "{{host}} 送信", "B")],
+                        12, 14, gw=12, gh=8, unit="Bps", decimals=0, legend_table=True,
+                        desc="上=受信 / 下(マイナス)=送信。lo/docker/vethは除外"))
+    p.append(timeseries("消費電力 推移 (W) — 測定可能分 = GPU",
+                        [prom_target("shopai_gpu_power_draw_watts", "GPU 電力", "A")],
+                        0, 22, gw=24, gh=6, unit="watt", decimals=1, legend_table=True,
+                        desc="CPU/システム全体電力はセンサ(RAPL/IPMI)が無く測定不可。GPUが主消費源"))
+    p.append(row("🤖 LLM 利用状況 (vLLM / llama.cpp — backend視点)", 28))
     p.append(stat("LLM 呼び出し (1h)", [prom_target(f"sum(increase({DISP}[1h])) or vector(0)")],
-                  0, 14, gw=6, gh=4, color_mode="value", decimals=0,
+                  0, 29, gw=6, gh=4, color_mode="value", decimals=0,
                   desc="backend が LLM を呼んだ回数 (vLLM+llama.cpp 合計)"))
     p.append(stat("成功率", [prom_target(f'(sum(increase({DISP}{{outcome="ok"}}[1h])) or vector(0)) / clamp_min(sum(increase({DISP}[1h])), 1)')],
-                  6, 14, gw=6, gh=4, unit="percentunit", color_mode="value", decimals=1,
+                  6, 29, gw=6, gh=4, unit="percentunit", color_mode="value", decimals=1,
                   steps=[{"color": "red", "value": None}, {"color": "yellow", "value": 0.9}, {"color": "green", "value": 0.99}]))
     p.append(stat("エラー (1h)", [prom_target(f'sum(increase({DISP}{{outcome="error"}}[1h])) or vector(0)')],
-                  12, 14, gw=6, gh=4, color_mode="value", decimals=0,
+                  12, 29, gw=6, gh=4, color_mode="value", decimals=0,
                   steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 1}, {"color": "red", "value": 10}]))
     p.append(stat("推論サニタイズ (1h)", [prom_target("sum(increase(shopai_reasoning_sanitized_total[1h])) or vector(0)")],
-                  18, 14, gw=6, gh=4, color_mode="value", decimals=0,
+                  18, 29, gw=6, gh=4, color_mode="value", decimals=0,
                   steps=[{"color": "green", "value": None}, {"color": "red", "value": 1}]))
     p.append(timeseries("ノード別 LLM 呼び出し (件/分)",
-                        [prom_target(f'sum(rate({DISP}{{node="fast_primary"}}[5m])) * 60', "vLLM (fast)", "A"),
-                         prom_target(f'sum(rate({DISP}{{node="smart_primary"}}[5m])) * 60', "llama.cpp (smart)", "B")],
-                        0, 18, gw=12, gh=8, unit="short", decimals=1, legend_table=True,
+                        [prom_target(f'sum(rate({DISP}{{node="fast_primary"}}[5m])) * 60 or vector(0)', "vLLM (fast)", "A"),
+                         prom_target(f'sum(rate({DISP}{{node="smart_primary"}}[5m])) * 60 or vector(0)', "llama.cpp (smart)", "B")],
+                        0, 33, gw=12, gh=8, unit="short", decimals=1, legend_table=True,
                         desc="各 LLM ノードへの呼び出し数。動いている LLM の線が立つ"))
     p.append(timeseries("ノード別 応答レイテンシ p95",
                         [prom_target(f'histogram_quantile(0.95, sum by (le) (rate({DLAT}{{node="fast_primary"}}[5m])))', "vLLM (fast)", "A"),
                          prom_target(f'histogram_quantile(0.95, sum by (le) (rate({DLAT}{{node="smart_primary"}}[5m])))', "llama.cpp (smart)", "B")],
-                        12, 18, gw=12, gh=8, unit="s", decimals=2, legend_table=True))
-
-    # vLLM 専用メトリクス
-    p.append(row("🚦 vLLM 専用メトリクス (vLLM稼働時のみ)", 26))
-    p.append(stat("vLLM 稼働状態", [prom_target('up{job="shopai-vllm"}')], 0, 27, gw=24, gh=3,
+                        12, 33, gw=12, gh=8, unit="s", decimals=2, legend_table=True))
+    p.append(row("🚦 vLLM 専用メトリクス (vLLM稼働時のみ)", 41))
+    p.append(stat("vLLM 稼働状態", [prom_target('up{job="shopai-vllm"}')], 0, 42, gw=24, gh=3,
                   mappings=UP_MAP, steps=UP_STEPS, color_mode="background", text_mode="value",
                   desc="DOWN=vLLM停止中。以下の vllm:* パネルが No data なのはこのため (停止中は正常)"))
-    p.append(stat("処理中リクエスト", [prom_target("vllm:num_requests_running")], 0, 30, gw=6, gh=6,
+    p.append(stat("処理中リクエスト", [prom_target("vllm:num_requests_running")], 0, 45, gw=6, gh=6,
                   color_mode="value", decimals=0))
-    p.append(stat("待機中リクエスト", [prom_target("vllm:num_requests_waiting")], 6, 30, gw=6, gh=6,
+    p.append(stat("待機中リクエスト", [prom_target("vllm:num_requests_waiting")], 6, 45, gw=6, gh=6,
                   color_mode="value", decimals=0,
                   steps=[{"color": "green", "value": None}, {"color": "yellow", "value": 3}, {"color": "red", "value": 10}]))
-    p.append(gauge("KV キャッシュ使用率", [prom_target("vllm:kv_cache_usage_perc * 100")], 12, 30, gw=6, gh=6))
+    p.append(gauge("KV キャッシュ使用率", [prom_target("vllm:kv_cache_usage_perc * 100")], 12, 45, gw=6, gh=6))
     p.append(stat("Prefix キャッシュ命中率",
                   [prom_target("sum(rate(vllm:prefix_cache_hits_total[5m])) / clamp_min(sum(rate(vllm:prefix_cache_queries_total[5m])), 1)")],
-                  18, 30, gw=6, gh=6, unit="percentunit", color_mode="value", decimals=1))
-
-    p.append(row("⏱️ vLLM レイテンシ (vLLM稼働時のみ)", 36))
+                  18, 45, gw=6, gh=6, unit="percentunit", color_mode="value", decimals=1))
+    p.append(row("⏱️ vLLM レイテンシ (vLLM稼働時のみ)", 51))
     p.append(timeseries("初回トークンまで TTFT (p50 / p95)",
                         [prom_target("histogram_quantile(0.50, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket[5m])))", "p50", "A"),
                          prom_target("histogram_quantile(0.95, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket[5m])))", "p95", "B")],
-                        0, 37, gw=12, gh=8, unit="s", decimals=3, legend_table=True))
+                        0, 52, gw=12, gh=8, unit="s", decimals=3, legend_table=True))
     p.append(timeseries("リクエスト全体 E2E (p50 / p95)",
                         [prom_target("histogram_quantile(0.50, sum by (le) (rate(vllm:e2e_request_latency_seconds_bucket[5m])))", "p50", "A"),
                          prom_target("histogram_quantile(0.95, sum by (le) (rate(vllm:e2e_request_latency_seconds_bucket[5m])))", "p95", "B")],
-                        12, 37, gw=12, gh=8, unit="s", decimals=2, legend_table=True))
-
-    p.append(row("📈 vLLM スループット (vLLM稼働時のみ)", 45))
+                        12, 52, gw=12, gh=8, unit="s", decimals=2, legend_table=True))
+    p.append(row("📈 vLLM スループット (vLLM稼働時のみ)", 60))
     p.append(timeseries("トークン間レイテンシ TPOT (p95)",
                         [prom_target("histogram_quantile(0.95, sum by (le) (rate(vllm:inter_token_latency_seconds_bucket[5m])))", "p95")],
-                        0, 46, gw=12, gh=8, unit="s", decimals=3, legend_table=True))
+                        0, 61, gw=12, gh=8, unit="s", decimals=3, legend_table=True))
     p.append(timeseries("生成トークン スループット (tok/s)",
                         [prom_target("sum(rate(vllm:generation_tokens_total[5m]))", "tokens/s")],
-                        12, 46, gw=12, gh=8, unit="short", decimals=1, legend_table=True))
+                        12, 61, gw=12, gh=8, unit="short", decimals=1, legend_table=True))
     return dashboard("shopai-llm-gpu", "ShopAI LLM & GPU", p, ["shopai", "llm", "gpu"])
 
 
