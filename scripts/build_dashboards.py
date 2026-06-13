@@ -295,20 +295,23 @@ def build_llm_gpu():
                          prom_target("sum by (host) (rate(node_network_transmit_bytes_total" + NETF + "[5m]))", "{{host}} 送信", "B")],
                         12, 14, gw=12, gh=8, unit="Bps", decimals=0, legend_table=True,
                         desc="受信・送信とも正の値。lo/docker/veth/tailscaleは除外"))
-    p.append(timeseries("消費電力 推移 (W) — GPU",
-                        [prom_target("shopai_gpu_power_draw_watts", "GPU 電力", "A")],
-                        0, 22, gw=12, gh=6, unit="watt", decimals=1, legend_table=True,
-                        desc="測定可能分=GPU。CPU/全体はセンサ(RAPL/IPMI)無く測定不可"))
+    RATE = 36.4   # 東京電力 従量電灯B 第2段階(120-300kWh) 円/kWh。tier1=29.80, tier3=40.49。変更可
+    kwh24 = "avg_over_time(shopai_gpu_power_draw_watts[24h]) * 24 / 1000"
+    kwh7d = "avg_over_time(shopai_gpu_power_draw_watts[7d]) * 168 / 1000"
     p.append(timeseries("消費電力量 推移 (1日あたり kWh, GPU)",
-                        [prom_target("avg_over_time(shopai_gpu_power_draw_watts[24h]) * 24 / 1000", "kWh/日", "A")],
-                        12, 22, gw=8, gh=6, unit="kwatth", decimals=3, legend_table=True,
+                        [prom_target(kwh24, "kWh/日", "A")],
+                        0, 22, gw=12, gh=6, unit="kwatth", decimals=3, legend_table=True,
                         desc="直近24hの平均電力×24h。日々の消費電力量を記録 (30日保持)"))
-    p.append(stat("今日の電力量 (24h)", [prom_target("avg_over_time(shopai_gpu_power_draw_watts[24h]) * 24 / 1000")],
-                  20, 22, gw=4, gh=3, unit="kwatth", color_mode="value", decimals=3,
-                  desc="GPU の直近24時間の消費電力量"))
-    p.append(stat("今週 (7日)", [prom_target("avg_over_time(shopai_gpu_power_draw_watts[7d]) * 168 / 1000")],
-                  20, 25, gw=4, gh=3, unit="kwatth", color_mode="value", decimals=2,
-                  desc="GPU の直近7日間の消費電力量"))
+    p.append(stat("今日の電力量 (24h)", [prom_target(kwh24)],
+                  12, 22, gw=6, gh=3, unit="kwatth", color_mode="value", decimals=3))
+    p.append(stat("今日の電気代 (24h)", [prom_target(f"({kwh24}) * {RATE}")],
+                  18, 22, gw=6, gh=3, unit="currencyJPY", color_mode="value", decimals=1,
+                  desc=f"東京電力 従量電灯B {RATE}円/kWh で換算 (GPU分のみ)。tier1=29.80/tier3=40.49"))
+    p.append(stat("今週の電力量 (7日)", [prom_target(kwh7d)],
+                  12, 25, gw=6, gh=3, unit="kwatth", color_mode="value", decimals=2))
+    p.append(stat("今週の電気代 (7日)", [prom_target(f"({kwh7d}) * {RATE}")],
+                  18, 25, gw=6, gh=3, unit="currencyJPY", color_mode="value", decimals=1,
+                  desc=f"GPU 直近7日の電気代 ({RATE}円/kWh)"))
     p.append(row("🤖 LLM 利用状況 (vLLM / llama.cpp — backend視点)", 28))
     p.append(stat("LLM 呼び出し (1h)", [prom_target(f"sum(increase({DISP}[1h])) or vector(0)")],
                   0, 29, gw=6, gh=4, color_mode="value", decimals=0,
