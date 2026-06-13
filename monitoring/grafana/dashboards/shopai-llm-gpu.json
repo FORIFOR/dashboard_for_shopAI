@@ -402,8 +402,8 @@
     {
       "id": 8,
       "type": "timeseries",
-      "title": "GPU \u63a8\u79fb (\u4f7f\u7528\u7387% / VRAM% / \u96fb\u529bW) \u2014 \u52d5\u3044\u305f\u5c65\u6b74",
-      "description": "Last 24h/7d \u306b\u3059\u308b\u3068 GPU \u304c\u7a3c\u50cd\u3057\u305f\u5c71\u304c\u898b\u3048\u308b (30\u65e5\u4fdd\u6301)",
+      "title": "GPU \u63a8\u79fb (\u4f7f\u7528\u7387% / VRAM%) \u2014 \u52d5\u3044\u305f\u5c65\u6b74",
+      "description": "Last 24h/7d \u306b\u3059\u308b\u3068 GPU \u304c\u7a3c\u50cd\u3057\u305f\u5c71\u304c\u898b\u3048\u308b (30\u65e5\u4fdd\u6301)\u3002\u96fb\u529b\u306f\u4e0b\u306e\u6d88\u8cbb\u96fb\u529b\u30b0\u30e9\u30d5",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -426,7 +426,7 @@
           "color": {
             "mode": "palette-classic"
           },
-          "unit": "short",
+          "unit": "percent",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -471,15 +471,6 @@
             "uid": "shopai-prometheus"
           },
           "legendFormat": "VRAM %"
-        },
-        {
-          "refId": "C",
-          "expr": "shopai_gpu_power_draw_watts",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "shopai-prometheus"
-          },
-          "legendFormat": "\u96fb\u529b W"
         }
       ]
     },
@@ -566,7 +557,7 @@
       "id": 11,
       "type": "timeseries",
       "title": "\u30cd\u30c3\u30c8\u30ef\u30fc\u30af \u9001\u53d7\u4fe1 (\u30d0\u30a4\u30c8/\u79d2)",
-      "description": "\u4e0a=\u53d7\u4fe1 / \u4e0b(\u30de\u30a4\u30ca\u30b9)=\u9001\u4fe1\u3002lo/docker/veth\u306f\u9664\u5916",
+      "description": "\u53d7\u4fe1\u30fb\u9001\u4fe1\u3068\u3082\u6b63\u306e\u5024\u3002lo/docker/veth/tailscale\u306f\u9664\u5916",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -628,7 +619,7 @@
         },
         {
           "refId": "B",
-          "expr": "- sum by (host) (rate(node_network_transmit_bytes_total{device!~\"lo|docker.*|veth.*|br.*|tailscale.*\"}[5m]))",
+          "expr": "sum by (host) (rate(node_network_transmit_bytes_total{device!~\"lo|docker.*|veth.*|br.*|tailscale.*\"}[5m]))",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"

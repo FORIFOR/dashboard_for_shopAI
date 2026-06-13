@@ -281,21 +281,20 @@ def build_llm_gpu():
                   unit="short", color_mode="value", decimals=0))
     p.append(stat("VRAM 使用量", [prom_target("shopai_gpu_memory_used_mib * 1048576")], 20, 1, gw=4, gh=6,
                   unit="bytes", color_mode="value", decimals=1))
-    p.append(timeseries("GPU 推移 (使用率% / VRAM% / 電力W) — 動いた履歴",
+    p.append(timeseries("GPU 推移 (使用率% / VRAM%) — 動いた履歴",
                         [prom_target("shopai_gpu_utilization_percent", "GPU使用率 %", "A"),
-                         prom_target("100 * shopai_gpu_memory_used_mib / shopai_gpu_memory_total_mib", "VRAM %", "B"),
-                         prom_target("shopai_gpu_power_draw_watts", "電力 W", "C")],
-                        0, 7, gw=24, gh=6, unit="short", decimals=1, legend_table=True,
-                        desc="Last 24h/7d にすると GPU が稼働した山が見える (30日保持)"))
+                         prom_target("100 * shopai_gpu_memory_used_mib / shopai_gpu_memory_total_mib", "VRAM %", "B")],
+                        0, 7, gw=24, gh=6, unit="percent", decimals=1, legend_table=True,
+                        desc="Last 24h/7d にすると GPU が稼働した山が見える (30日保持)。電力は下の消費電力グラフ"))
     p.append(row("💻 ホスト負荷 / 通信 / 消費電力 (GPU PC / Backend VM)", 13))
     p.append(timeseries("CPU 使用率 推移 (%)",
                         [prom_target('100 - avg by (host) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100', "{{host}}")],
                         0, 14, gw=12, gh=8, unit="percent", decimals=1, legend_table=True))
     p.append(timeseries("ネットワーク 送受信 (バイト/秒)",
                         [prom_target("sum by (host) (rate(node_network_receive_bytes_total" + NETF + "[5m]))", "{{host}} 受信", "A"),
-                         prom_target("- sum by (host) (rate(node_network_transmit_bytes_total" + NETF + "[5m]))", "{{host}} 送信", "B")],
+                         prom_target("sum by (host) (rate(node_network_transmit_bytes_total" + NETF + "[5m]))", "{{host}} 送信", "B")],
                         12, 14, gw=12, gh=8, unit="Bps", decimals=0, legend_table=True,
-                        desc="上=受信 / 下(マイナス)=送信。lo/docker/vethは除外"))
+                        desc="受信・送信とも正の値。lo/docker/veth/tailscaleは除外"))
     p.append(timeseries("消費電力 推移 (W) — 測定可能分 = GPU",
                         [prom_target("shopai_gpu_power_draw_watts", "GPU 電力", "A")],
                         0, 22, gw=24, gh=6, unit="watt", decimals=1, legend_table=True,
