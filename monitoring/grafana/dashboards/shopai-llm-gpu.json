@@ -631,8 +631,8 @@
     {
       "id": 12,
       "type": "timeseries",
-      "title": "\u6d88\u8cbb\u96fb\u529b\u91cf \u63a8\u79fb (1\u65e5\u3042\u305f\u308a kWh, GPU)",
-      "description": "\u76f4\u8fd124h\u306e\u5e73\u5747\u96fb\u529b\u00d724h\u3002\u65e5\u3005\u306e\u6d88\u8cbb\u96fb\u529b\u91cf\u3092\u8a18\u9332 (30\u65e5\u4fdd\u6301)",
+      "title": "\u63a8\u5b9a \u30de\u30b7\u30f3\u5168\u4f53 \u96fb\u529b (W) \u2014 GPU PC = baseline70W + CPU\u63a8\u5b9a + GPU\u5b9f\u6e2c",
+      "description": "\u63a8\u5b9a=baseline70W(CPUidle/mobo/RAM/SSD/FAN/PSU) + CPU\u8ca0\u8377\u00d780W + GPU\u5b9f\u6e2c\u3002BASE/CPU\u5024\u306f\u30b3\u30fc\u30c9\u3067\u8abf\u6574\u53ef\u3002\u6b63\u78ba\u306b\u306f\u58c1\u30ef\u30c3\u30c8\u8a08(\u30b9\u30de\u30fc\u30c8PDU)\u304c\u5fc5\u8981",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -655,7 +655,7 @@
           "color": {
             "mode": "palette-classic"
           },
-          "unit": "kwatth",
+          "unit": "watt",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -665,7 +665,7 @@
               }
             ]
           },
-          "decimals": 3
+          "decimals": 0
         },
         "overrides": []
       },
@@ -685,19 +685,37 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "avg_over_time(shopai_gpu_power_draw_watts[24h]) * 24 / 1000",
+          "expr": "(70 + (100 - avg(rate(node_cpu_seconds_total{host=\"gpu-pc\",mode=\"idle\"}[5m])) * 100) / 100 * 80 + sum(node_hwmon_power_watt{host=\"gpu-pc\"}))",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
           },
-          "legendFormat": "kWh/\u65e5"
+          "legendFormat": "\u63a8\u5b9a \u5168\u4f53"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(node_hwmon_power_watt{host=\"gpu-pc\"})",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "GPU(\u5b9f\u6e2chwmon)"
+        },
+        {
+          "refId": "C",
+          "expr": "(100 - avg(rate(node_cpu_seconds_total{host=\"gpu-pc\",mode=\"idle\"}[5m])) * 100) / 100 * 80",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          },
+          "legendFormat": "CPU(\u63a8\u5b9a)"
         }
       ]
     },
     {
       "id": 13,
       "type": "stat",
-      "title": "\u4eca\u65e5\u306e\u96fb\u529b\u91cf (24h)",
+      "title": "\u4eca\u65e5\u306e\u96fb\u529b\u91cf (\u5168\u4f53\u30fb\u63a8\u5b9a)",
       "description": "",
       "datasource": {
         "type": "prometheus",
@@ -708,124 +726,6 @@
         "w": 6,
         "x": 12,
         "y": 22
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "kwatth",
-          "decimals": 3
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "textMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "avg_over_time(shopai_gpu_power_draw_watts[24h]) * 24 / 1000",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "shopai-prometheus"
-          }
-        }
-      ]
-    },
-    {
-      "id": 14,
-      "type": "stat",
-      "title": "\u4eca\u65e5\u306e\u96fb\u6c17\u4ee3 (24h)",
-      "description": "\u6771\u4eac\u96fb\u529b \u5f93\u91cf\u96fb\u706fB 36.4\u5186/kWh \u3067\u63db\u7b97 (GPU\u5206\u306e\u307f)\u3002tier1=29.80/tier3=40.49",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "shopai-prometheus"
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 6,
-        "x": 18,
-        "y": 22
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "currencyJPY",
-          "decimals": 1
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "textMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "(avg_over_time(shopai_gpu_power_draw_watts[24h]) * 24 / 1000) * 36.4",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "shopai-prometheus"
-          }
-        }
-      ]
-    },
-    {
-      "id": 15,
-      "type": "stat",
-      "title": "\u4eca\u9031\u306e\u96fb\u529b\u91cf (7\u65e5)",
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "shopai-prometheus"
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 6,
-        "x": 12,
-        "y": 25
       },
       "fieldConfig": {
         "defaults": {
@@ -863,7 +763,125 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "avg_over_time(shopai_gpu_power_draw_watts[7d]) * 168 / 1000",
+          "expr": "avg_over_time((70 + (100 - avg(rate(node_cpu_seconds_total{host=\"gpu-pc\",mode=\"idle\"}[5m])) * 100) / 100 * 80 + sum(node_hwmon_power_watt{host=\"gpu-pc\"}))[24h:5m]) * 24 / 1000",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "\u4eca\u65e5\u306e\u96fb\u6c17\u4ee3 (\u5168\u4f53\u30fb\u63a8\u5b9a)",
+      "description": "\u6771\u4eac\u96fb\u529b 36.4\u5186/kWh\u3002\u30de\u30b7\u30f3\u5168\u4f53\u306e\u63a8\u5b9a(GPU\u5b9f\u6e2c+CPU/baseline\u63a8\u5b9a)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 18,
+        "y": 22
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyJPY",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(avg_over_time((70 + (100 - avg(rate(node_cpu_seconds_total{host=\"gpu-pc\",mode=\"idle\"}[5m])) * 100) / 100 * 80 + sum(node_hwmon_power_watt{host=\"gpu-pc\"}))[24h:5m]) * 24 / 1000) * 36.4",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "shopai-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "\u4eca\u9031\u306e\u96fb\u529b\u91cf (\u5168\u4f53\u30fb\u63a8\u5b9a)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "shopai-prometheus"
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 12,
+        "y": 25
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kwatth",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg_over_time((70 + (100 - avg(rate(node_cpu_seconds_total{host=\"gpu-pc\",mode=\"idle\"}[5m])) * 100) / 100 * 80 + sum(node_hwmon_power_watt{host=\"gpu-pc\"}))[7d:10m]) * 168 / 1000",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
@@ -874,8 +892,8 @@
     {
       "id": 16,
       "type": "stat",
-      "title": "\u4eca\u9031\u306e\u96fb\u6c17\u4ee3 (7\u65e5)",
-      "description": "GPU \u76f4\u8fd17\u65e5\u306e\u96fb\u6c17\u4ee3 (36.4\u5186/kWh)",
+      "title": "\u4eca\u9031\u306e\u96fb\u6c17\u4ee3 (\u5168\u4f53\u30fb\u63a8\u5b9a)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "shopai-prometheus"
@@ -902,7 +920,7 @@
             ]
           },
           "unit": "currencyJPY",
-          "decimals": 1
+          "decimals": 0
         },
         "overrides": []
       },
@@ -922,7 +940,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "(avg_over_time(shopai_gpu_power_draw_watts[7d]) * 168 / 1000) * 36.4",
+          "expr": "(avg_over_time((70 + (100 - avg(rate(node_cpu_seconds_total{host=\"gpu-pc\",mode=\"idle\"}[5m])) * 100) / 100 * 80 + sum(node_hwmon_power_watt{host=\"gpu-pc\"}))[7d:10m]) * 168 / 1000) * 36.4",
           "datasource": {
             "type": "prometheus",
             "uid": "shopai-prometheus"
